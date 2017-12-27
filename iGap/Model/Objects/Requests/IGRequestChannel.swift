@@ -25,9 +25,8 @@ class IGChannelCreateRequest : IGRequest {
     }
     class Handler : IGRequest.Handler {
         class func interpret(response responseProtoMessage:IGPChannelCreateResponse) ->(String) {
-            let invitedLink = responseProtoMessage.igpInviteLink
             
-            return (invitedLink: invitedLink ) as! (String)
+            return responseProtoMessage.igpInviteLink
         }
         
         override class func handlePush(responseProtoMessage: Message) {
@@ -144,9 +143,16 @@ class IGChannelDeleteRequest: IGRequest {
     class Handler : IGRequest.Handler {
         class func interpret(response responseProtoMessage: IGPChannelDeleteResponse) -> Int64 {
             let igpRoomId = responseProtoMessage.igpRoomID
+            IGFactory.shared.setDeleteRoom(roomID: igpRoomId)
             return igpRoomId
         }
         override class func handlePush(responseProtoMessage: Message) {
+            switch responseProtoMessage {
+            case let channelDeleteResponse as IGPChannelDeleteResponse:
+                self.interpret(response: channelDeleteResponse)
+            default:
+                break
+            }
         }
     }
 }
@@ -276,7 +282,7 @@ class IGChannelLeftRequest : IGRequest {
     }
     class Handler : IGRequest.Handler {
         class func interpret(response responseProtoMessage:IGPChannelLeftResponse) {
-            IGFactory.shared.leftRoomInDatabase(roomID: responseProtoMessage.igpMemberID)
+            IGFactory.shared.leftRoomInDatabase(roomID: responseProtoMessage.igpRoomID, memberId: responseProtoMessage.igpMemberID)
         }
         override class func handlePush(responseProtoMessage: Message) {
             switch responseProtoMessage {
@@ -510,8 +516,26 @@ class IGChannelGetMemberListRequest: IGRequest {
             
         }
     }
-    
 }
+
+
+class IGChannelCheckUsernameRequest : IGRequest {
+    class Generator : IGRequest.Generator {
+        class func generate(roomId: Int64, username: String) -> IGRequestWrapper {
+            var checkUsername = IGPChannelCheckUsername()
+            checkUsername.igpRoomID = roomId
+            checkUsername.igpUsername = username
+            return IGRequestWrapper(message: checkUsername, actionID: 418)
+        }
+    }
+    
+    class Handler : IGRequest.Handler {
+        override class func handlePush(responseProtoMessage: Message) {
+            
+        }
+    }
+}
+
 
 class IGChannelUpdateUsernameRequest : IGRequest {
     class Generator : IGRequest.Generator {
@@ -519,6 +543,13 @@ class IGChannelUpdateUsernameRequest : IGRequest {
             var channelUpdateUsernameRequestMessage = IGPChannelUpdateUsername()
             channelUpdateUsernameRequestMessage.igpRoomID = room.id
             channelUpdateUsernameRequestMessage.igpUsername = userName
+            return IGRequestWrapper(message: channelUpdateUsernameRequestMessage, actionID: 419)
+        }
+        
+        class func generate(roomId: Int64 , username: String) -> IGRequestWrapper {
+            var channelUpdateUsernameRequestMessage = IGPChannelUpdateUsername()
+            channelUpdateUsernameRequestMessage.igpRoomID = roomId
+            channelUpdateUsernameRequestMessage.igpUsername = username
             return IGRequestWrapper(message: channelUpdateUsernameRequestMessage, actionID: 419)
         }
 
@@ -535,9 +566,7 @@ class IGChannelUpdateUsernameRequest : IGRequest {
                 break
             }
         }
-        
     }
-
 }
 
 class IGChannelRemoveUsernameRequest: IGRequest {

@@ -307,9 +307,7 @@ class IGGroupLeftRequest : IGRequest {
     }
     class Handler : IGRequest.Handler {
         class func interpret(response responseProtoMessage : IGPGroupLeftResponse) {
-            let igpRoomId = responseProtoMessage.igpRoomID
-            IGFactory.shared.leftRoomInDatabase(roomID: igpRoomId)
-            
+            IGFactory.shared.leftRoomInDatabase(roomID: responseProtoMessage.igpRoomID, memberId: responseProtoMessage.igpMemberID)
         }
         override class func handlePush(responseProtoMessage : Message) {
             switch responseProtoMessage {
@@ -677,22 +675,6 @@ class IGGroupCheckUsernameRequest : IGRequest {
         }
     }
     class Handler: IGRequest.Handler {
-        class func interpret(response responseProtoMessage: IGPGroupCheckUsernameResponse) -> IGCheckUsernameStatus {
-            let igpUsernameStatus = responseProtoMessage.igpStatus
-            var usernameStatus : IGCheckUsernameStatus
-            switch igpUsernameStatus {
-            case .available:
-                usernameStatus = .available
-            case .invalid:
-                usernameStatus = .invalid
-            case .taken:
-                usernameStatus = .taken
-            default:
-                usernameStatus = .invalid
-            }
-            return usernameStatus
-        }
-        
         override class func handlePush(responseProtoMessage : Message) {
             
         }

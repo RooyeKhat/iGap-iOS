@@ -215,22 +215,29 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
         var photos: [INSPhotoViewable] = self.avatars.map { (avatar) -> IGMedia in
             return IGMedia(avatar: avatar)
         }
+        if(photos.count==0){
+            return
+        }
         avatarPhotos = photos
         let currentPhoto = photos[0]
-        let deleteViewFrame = CGRect(x:320, y:595, width: 25 , height:25)
-        let trashImageView = UIImageView()
-        trashImageView.image = UIImage(named: "IG_Trash_avatar")
-        trashImageView.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
-        if myRole == .owner || myRole == .admin {
-        deleteView = IGTappableView(frame: deleteViewFrame)
-        deleteView?.addSubview(trashImageView)
-        deleteView?.addAction {
-            self.didTapOnTrashButton()
-            }
-        } else {
-            deleteView = nil
-        }
-
+        
+//        let galleryPreview = INSPhotosViewController(photos: photos, initialPhoto: currentPhoto, referenceView: nil)
+//        present(galleryPreview, animated: true, completion: nil)
+        
+//        let deleteViewFrame = CGRect(x:320, y:595, width: 25 , height:25)
+//        let trashImageView = UIImageView()
+//        trashImageView.image = UIImage(named: "IG_Trash_avatar")
+//        trashImageView.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
+//        if myRole == .owner || myRole == .admin {
+//        deleteView = IGTappableView(frame: deleteViewFrame)
+//        deleteView?.addSubview(trashImageView)
+//        deleteView?.addAction {
+//            self.didTapOnTrashButton()
+//            }
+//        } else {
+//            deleteView = nil
+//        }
+//
         let downloadIndicatorMainView = UIView()
         let downloadViewFrame = self.view.bounds
         downloadIndicatorMainView.backgroundColor = UIColor.white
@@ -244,8 +251,7 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
         galleryPhotos = galleryPreview
         present(galleryPreview, animated: true, completion: nil)
         activityIndicatorView.startAnimating()
-        activityIndicatorView.startAnimating()
-        
+
         DispatchQueue.main.async {
             let size = CGSize(width: 30, height: 30)
             self.startAnimating(size, message: nil, type: NVActivityIndicatorType.ballRotateChase)
@@ -261,17 +267,28 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
                     return
                 }
                 
+                if UIImage.originalImage(for: currentAvatarFile!) != nil {
+                    galleryPreview.hiddenDownloadView()
+                    self.stopAnimating()
+                    return
+                }
+
                 if let attachment = currentAvatarFile {
                     IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: {
-                        galleryPreview.hiddenDownloadView()
-                        self.stopAnimating()
+                        DispatchQueue.main.async {
+                            galleryPreview.hiddenDownloadView()
+                            self.stopAnimating()
+                        }
                     }, failure: {
-                        
+                        DispatchQueue.main.async {
+                            galleryPreview.hiddenDownloadView()
+                            self.stopAnimating()
+                        }
                     })
                 }
-                
+
             }
-            
+
         }
         scheduledTimerWithTimeInterval()
     }
@@ -316,11 +333,11 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
     
     func requestToGetAvatarList() {
         if let currentRoomID = room?.id {
-            IGGroupAvatarGetListRequest.Generator.generate(roomId: currentRoomID).success({ (protoResponse) in
+            IGChannelAvatarGetListRequest.Generator.generate(roomId: currentRoomID).success({ (protoResponse) in
                 DispatchQueue.main.async {
                     switch protoResponse {
-                    case let channelAvatarGetListResponse as IGPGroupAvatarGetListResponse:
-                        let responseAvatars = IGGroupAvatarGetListRequest.Handler.interpret(response: channelAvatarGetListResponse)
+                    case let channelAvatarGetListResponse as IGPChannelAvatarGetListResponse:
+                        let responseAvatars = IGChannelAvatarGetListRequest.Handler.interpret(response: channelAvatarGetListResponse)
                         self.avatars = responseAvatars
                     default:
                         break
@@ -345,7 +362,7 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
 
     func scheduledTimerWithTimeInterval(){
         // Scheduling timer to Call the function **Countdown** with the interval of 1 seconds
-        timer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.updateCounting), userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.updateCounting), userInfo: nil, repeats: true)
     }
     
     @objc func updateCounting(){
@@ -360,10 +377,22 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
                     return
                 }
                 
-                if let attachment = currentAvatarFile {
-                    IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: {
+                if UIImage.originalImage(for: currentAvatarFile!) != nil {
+                    DispatchQueue.main.async {
                         self.galleryPhotos?.hiddenDownloadView()
                         self.stopAnimating()
+                    }
+                    
+                    self.currentAvatarId = nextAvatarId
+                    return
+                }
+                
+                if let attachment = currentAvatarFile {
+                    IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: {
+                        DispatchQueue.main.async {
+                            self.galleryPhotos?.hiddenDownloadView()
+                            self.stopAnimating()
+                        }
                     }, failure: {
                         
                     })
@@ -397,6 +426,12 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
                 }
             }
         })
+        
+        let deleteAction = UIAlertAction(title: "Delete Main Avatar", style: .destructive, handler: {
+            (alert: UIAlertAction!) -> Void in
+            self.deleteAvatar()
+        })
+        
         let ChoosePhoto = UIAlertAction(title: "Choose Photo", style: .default, handler: {
             (alert: UIAlertAction!) -> Void in
             print("Choose Photo")
@@ -417,6 +452,9 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
             (alert: UIAlertAction!) -> Void in
             print("Cancelled")
         })
+        if myRole == .owner || myRole == .admin {
+            optionMenu.addAction(deleteAction)
+        }
         optionMenu.addAction(ChoosePhoto)
         optionMenu.addAction(cancelAction)
         if UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.camera) == true {
@@ -429,6 +467,37 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
         self.present(optionMenu, animated: true, completion: nil)
     }
 
+    /*
+     * this method will be deleted main(latest) avatar
+     */
+    func deleteAvatar(){
+        let avatar = self.avatars[0]
+        IGChannelAvatarDeleteRequest.Generator.generate(avatarId: avatar.id, roomId: (room?.id)!).success({ (protoResponse) in
+            DispatchQueue.main.async {
+                switch protoResponse {
+                case let channelAvatarDeleteResponse as IGPChannelAvatarDeleteResponse :
+                    IGChannelAvatarDeleteRequest.Handler.interpret(response: channelAvatarDeleteResponse)
+                    self.avatarPhotos?.remove(at: 0)
+                    self.avatars.remove(at: 0)
+                default:
+                    break
+                }
+            }
+        }).error ({ (errorCode, waitTime) in
+            switch errorCode {
+            case .timeout:
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                }
+            default:
+                break
+            }
+            
+        }).send()
+    }
 
     // MARK: - Table view data source
 
@@ -637,17 +706,12 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
             case .privateRoom:
                 channelTypeLabel.text = "Private"
                 if let link = room?.channelRoom?.privateExtra?.inviteLink {
-                    print(room?.channelRoom?.privateExtra?.inviteToken)
                     channelLinkLabel.text = link
-                } else {
-                    print("private room without a link")
                 }
             case .publicRoom:
                 channelTypeLabel.text = "Public"
                 if let username = room?.channelRoom?.publicExtra?.username {
                     channelLinkLabel.text = "iGap.net/" + username
-                } else {
-                    print("public room without a username")
                 }
             }
         }
@@ -656,18 +720,6 @@ class IGChannelInfoTableViewController: UITableViewController , UIGestureRecogni
             numberOfMemberJoinedThisChannelLabel.text = "\(memberCount)"
         }
         
-        
-        
-//        var channelLink: String? = ""
-//        if room?.channelRoom?.type == .privateRoom {
-//            
-//        }
-//        if room?.channelRoom?.type == .publicRoom {
-//            
-//        }
-//        if let linkTitile = channelLink {
-//            
-//        }
         if room?.channelRoom?.isSignature == true {
             signMessageSwtich.isOn = true
         } else { //if room?.channelRoom?.isSignature == false {

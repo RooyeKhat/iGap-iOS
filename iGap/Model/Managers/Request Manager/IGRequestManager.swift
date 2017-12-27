@@ -182,8 +182,8 @@ let protoClassesLookupTable: [Int: (proto: ResponseMessage.Type, reponseHandler:
             IGGroupDeleteMessageRequest.Handler.self        as IGRequest.Handler.Type),
     30321: (IGPGroupCheckUsernameResponse.self              as ResponseMessage.Type,
             IGGroupCheckUsernameRequest.Handler.self        as IGRequest.Handler.Type),
-    30322: (IGPGroupCheckUsernameResponse.self              as ResponseMessage.Type,
-            IGGroupCheckUsernameRequest.Handler.self        as IGRequest.Handler.Type),
+    30322: (IGPGroupUpdateUsernameResponse.self                as ResponseMessage.Type,
+            IGGroupUpdateUsernameRequest.Handler.self       as IGRequest.Handler.Type),
     30323: (IGPGroupRemoveUsernameResponse.self             as ResponseMessage.Type,
             IGGroupRemoveUsernameRequest.Handler.self       as IGRequest.Handler.Type),
     30324: (IGPGroupRevokeLinkResponse.self                 as ResponseMessage.Type,
@@ -228,6 +228,8 @@ let protoClassesLookupTable: [Int: (proto: ResponseMessage.Type, reponseHandler:
             IGChannelGetDraftRequest.Handler.self           as IGRequest.Handler.Type),
     30417: (IGPChannelGetMemberListResponse.self            as ResponseMessage.Type,
             IGChannelGetMemberListRequest.Handler.self      as IGRequest.Handler.Type),
+    30418: (IGPChannelCheckUsernameResponse.self            as ResponseMessage.Type,
+            IGChannelCheckUsernameRequest.Handler.self      as IGRequest.Handler.Type),
     30419: (IGPChannelUpdateUsernameResponse.self           as ResponseMessage.Type,
             IGChannelUpdateUsernameRequest.Handler.self     as IGRequest.Handler.Type),
     30420: (IGPChannelRemoveUsernameResponse.self           as ResponseMessage.Type,
@@ -439,8 +441,6 @@ class IGRequestManager {
             actionID = actionID | Int(byte)
         }
         
-        print("✦ \(NSDate.timeIntervalSinceReferenceDate) ----- ➤➤➤ Action ID: \(actionID)")
-
         if !IGWebSocketManager.sharedManager.isSecureConnection() && !unsecureResponseActionID.contains(actionID) {
             return
         }
@@ -452,16 +452,14 @@ class IGRequestManager {
                 let responseProtoMessage = try protoClassName.init(serializedData: payload) 
                 let requestHandlerClassName = lookupTableResult.reponseHandler
                 
+                print("\n______________________________\nRESPONSE ➤➤➤ Action ID: \(actionID)   || \(responseProtoMessage) \n------------------------------\n")
+                
                 let response = responseProtoMessage.igpResponse
                 //check if this is a `reponse` or a `push`
                 if let correspondingRequestWrapper = pendingRequests[response.igpID] {
                     if actionID == 0 { //-> failed
                         let errorProtoMessage = responseProtoMessage as! IGPErrorResponse
-                        print("✘ \(NSDate.timeIntervalSinceReferenceDate) ----- ✘✘✘✘✘✘ Major Code: \(errorProtoMessage.igpMajorCode)")
-                        print("✘ \(NSDate.timeIntervalSinceReferenceDate) ----- ✘✘✘✘✘✘ Minor Code: \(errorProtoMessage.igpMinorCode)")
-
                         let errorData = IGErrorRequest.Handler.interpret(response: errorProtoMessage)
-
                         if let error = correspondingRequestWrapper.error {
                             error(errorData.error, errorData.wait)
                         }
@@ -481,10 +479,6 @@ class IGRequestManager {
                     //call its corresponding handler class to handle push
                     requestHandlerClassName.handlePush(responseProtoMessage: responseProtoMessage)
                 }
-//            }
-//            else {
-//                    print ("✦ \(NSDate.timeIntervalSinceReferenceDate) ----- Response without IGResponse Property")
-//                }
             } catch let error {
                 print ("✦ \(NSDate.timeIntervalSinceReferenceDate) ----- Error Parsing Proto From Binary Data")
                 print (error)
@@ -494,7 +488,7 @@ class IGRequestManager {
             //at this point ignore this data
             //maybe new command (protos) added to server but
             //not supported yet by this version of iOS client
-            print ("✦ \(NSDate.timeIntervalSinceReferenceDate) ----- Unsupported action ID")
+            print("\n\n RESPONSE ➤➤➤ Action ID: \(actionID)   || This id not exist in LookUpTable \n\n")
         }
     }
     

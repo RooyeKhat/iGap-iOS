@@ -11,6 +11,7 @@
 import UIKit
 import RealmSwift
 import IGProtoBuff
+import MBProgressHUD
 
 class IGNewChannelChoosePublicOrPrivateTableViewController: UITableViewController ,UITextFieldDelegate,SSRadioButtonControllerDelegate , UIGestureRecognizerDelegate {
     
@@ -23,6 +24,15 @@ class IGNewChannelChoosePublicOrPrivateTableViewController: UITableViewControlle
     @IBOutlet weak var channelNameEntryCell: UITableViewCell!
     var invitedLink: String?
     var igpRoom : IGPRoom!
+    var hud = MBProgressHUD()
+    
+    @IBAction func edtTextChange(_ sender: UITextField) {
+        if let text = sender.text {
+            if text.count >= 5 {
+                checkUsername(username: sender.text!)
+            }
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,10 +55,94 @@ class IGNewChannelChoosePublicOrPrivateTableViewController: UITableViewControlle
         navigationController.interactivePopGestureRecognizer?.delegate = self
         navigationItem.hidesBackButton = true
         navigationItem.rightViewContainer?.addAction {
-            self.performSegue(withIdentifier: "GoToChooseMemberFromContactPage", sender: self)
-            
+            if self.radioButtonController?.selectedButton() == self.publicChannelButton {
+                self.convertChannelToPublic()
+            } else {
+                self.performSegue(withIdentifier: "GoToChooseMemberFromContactPage", sender: self)
+            }
         }
-        
+    }
+    
+    func convertChannelToPublic() {
+        if let channelUserName = channelLinkTextField.text {
+            if channelUserName == "" {
+                let alert = UIAlertController(title: "Error", message: "Channel link cannot be empty", preferredStyle: .alert)
+                let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                alert.addAction(okAction)
+                self.hud.hide(animated: true)
+                self.present(alert, animated: true, completion: nil)
+                return
+            }
+            
+            if channelUserName.count < 5 {
+                let alert = UIAlertController(title: "Error", message: "Enter at least 5 letters", preferredStyle: .alert)
+                let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                alert.addAction(okAction)
+                self.hud.hide(animated: true)
+                self.present(alert, animated: true, completion: nil)
+                return
+            }
+            
+            self.hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            self.hud.mode = .indeterminate
+            IGChannelUpdateUsernameRequest.Generator.generate(roomId:igpRoom.igpID ,username:channelUserName).success({ (protoResponse) in
+                DispatchQueue.main.async {
+                    switch protoResponse {
+                    case is IGPChannelUpdateUsernameResponse :
+                        self.performSegue(withIdentifier: "GoToChooseMemberFromContactPage", sender: self)
+                        break
+                    default:
+                        break
+                    }
+                    self.hud.hide(animated: true)
+                }
+            }).error ({ (errorCode, waitTime) in
+                DispatchQueue.main.async {
+                    switch errorCode {
+                    case .timeout:
+                        let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(okAction)
+                        self.hud.hide(animated: true)
+                        self.present(alert, animated: true, completion: nil)
+                    default:
+                        self.hud.hide(animated: true)
+                        break
+                    }
+                }
+                
+            }).send()
+        }
+    }
+    
+    func checkUsername(username: String){
+        IGChannelCheckUsernameRequest.Generator.generate(roomId:igpRoom.igpID ,username: username).success({ (protoResponse) in
+            DispatchQueue.main.async {
+                switch protoResponse {
+                case let usernameResponse as IGPChannelCheckUsernameResponse :
+                    if usernameResponse.igpStatus == IGPChannelCheckUsernameResponse.IGPStatus.available {
+                        self.channelLinkTextField.textColor = UIColor.black
+                    } else {
+                        self.channelLinkTextField.textColor = UIColor.red
+                    }
+                    break
+                default:
+                    break
+                }
+            }
+        }).error ({ (errorCode, waitTime) in
+            DispatchQueue.main.async {
+                switch errorCode {
+                case .timeout:
+                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                default:
+                    break
+                }
+            }
+        }).send()
     }
     
     func didSelectButton(_ aButton: UIButton?) {
@@ -65,10 +159,11 @@ class IGNewChannelChoosePublicOrPrivateTableViewController: UITableViewControlle
             channelLinkTextField.delegate = self
         }
         if radioButtonController?.selectedButton() == privateChannel {
-           channelLinkTextField.leftView = nil
-           channelLinkTextField.text = invitedLink
-           channelLinkTextField.isUserInteractionEnabled = false
-           channelLinkTextField.delegate = self
+            channelLinkTextField.leftView = nil
+            channelLinkTextField.text = invitedLink
+            channelLinkTextField.textColor = UIColor.black
+            channelLinkTextField.isUserInteractionEnabled = false
+            channelLinkTextField.delegate = self
             tableView.reloadData()
         }
     }

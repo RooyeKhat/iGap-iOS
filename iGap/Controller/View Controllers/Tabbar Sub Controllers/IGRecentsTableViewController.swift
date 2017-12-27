@@ -142,14 +142,8 @@ class IGRecentsTableViewController: UITableViewController {
         }, onDisposed: {
             
         }).addDisposableTo(disposeBag)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        self.tableView.isUserInteractionEnabled = true
         
         self.addRoomChangeNotificationBlock()
-        
         
         if IGAppManager.sharedManager.isUserLoggiedIn() {
             self.fetchRoomList()
@@ -166,7 +160,12 @@ class IGRecentsTableViewController: UITableViewController {
                                                selector: #selector(segueToChatNotificationReceived(_:)),
                                                name: NSNotification.Name(rawValue: kIGNotificationNameDidCreateARoom),
                                                object: nil)
+    }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.tableView.isUserInteractionEnabled = true
+        //self.addRoomChangeNotificationBlock()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -177,7 +176,7 @@ class IGRecentsTableViewController: UITableViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tableView.isUserInteractionEnabled = true
-        self.notificationToken?.stop()
+        //self.notificationToken?.stop()
     }
 
     override func didReceiveMemoryWarning() {
@@ -203,7 +202,6 @@ class IGRecentsTableViewController: UITableViewController {
                 self.setTabbarBadge()
                 break
             case .update(_, let deletions, let insertions, let modifications):
-                print("updating recents VC")
                 // Query messages have changed, so apply them to the TableView
                 self.tableView.beginUpdates()
                 self.tableView.insertRows(at: insertions.map { IndexPath(row: $0, section: 0) }, with: .none)
@@ -401,20 +399,32 @@ class IGRecentsTableViewController: UITableViewController {
                             let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                             alert.addAction(okAction)
                             self.present(alert, animated: true, completion: nil)
-
+                            
                         } else {
-                        self.deleteChat(room: room)
+                            self.deleteChat(room: room)
                         }
+                        break
                     case .group:
                         if self.connectionStatus == .waitingForNetwork || self.connectionStatus == .connecting {
                             let alert = UIAlertController(title: "Error", message: "No Network Connection", preferredStyle: .alert)
                             let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                             alert.addAction(okAction)
                             self.present(alert, animated: true, completion: nil)
-
+                            
                         } else {
-                        self.deleteGroup(room: room)
+                            self.deleteGroup(room: room)
                         }
+                        break
+                    case .channel:
+                        if self.connectionStatus == .waitingForNetwork || self.connectionStatus == .connecting {
+                            let alert = UIAlertController(title: "Error", message: "No Network Connection", preferredStyle: .alert)
+                            let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                            alert.addAction(okAction)
+                            self.present(alert, animated: true, completion: nil)
+                        } else {
+                            self.deleteChannel(room: room)
+                        }
+                        break
                     default:
                         break
                     }
@@ -801,6 +811,35 @@ extension IGRecentsTableViewController {
                 self.hud.hide(animated: true)
             }
         }.send()
+    }
+    
+    func deleteChannel(room: IGRoom) {
+        self.hud = MBProgressHUD.showAdded(to: self.view.superview!, animated: true)
+        self.hud.mode = .indeterminate
+        IGChannelDeleteRequest.Generator.generate(roomID: room.id).success({ (protoResponse) in
+            DispatchQueue.main.async {
+                switch protoResponse {
+                case let deleteChannel as IGPChannelDeleteResponse:
+                    IGChannelDeleteRequest.Handler.interpret(response: deleteChannel)
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).error({ (errorCode , waitTime) in
+            DispatchQueue.main.async {
+                switch errorCode {
+                case .timeout:
+                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).send()
     }
 }
 

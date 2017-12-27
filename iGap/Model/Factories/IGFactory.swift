@@ -39,7 +39,9 @@ fileprivate class IGFactoryTask: NSObject {
     convenience init(messageTask igpMessage: IGPRoomMessage, for roomId: Int64, shouldFetchBefore: Bool?) {
         self.init()
         let task = {
-            print("    ======> saving message id: \(igpMessage.igpMessageID)")
+            if AppDelegate.showPrint {
+                print("    ======> saving message id: \(igpMessage.igpMessageID)")
+            }
             IGFactoryTask(dependencyUserTask: igpMessage.igpAuthor.igpUser.igpUserID, cacheID: igpMessage.igpAuthor.igpUser.igpCacheID).success({
                 IGFactoryTask(dependencyRoomTask: igpMessage.igpAuthor.igpRoom.igpRoomID, isParticipane: true).success({
                     
@@ -61,7 +63,9 @@ fileprivate class IGFactoryTask: NSObject {
                             IGDatabaseManager.shared.realm.add(message, update: true)
                         }
                         IGFactory.shared.performInFactoryQueue {
-                            print("    ======> success in saving message id: \(igpMessage.igpMessageID)")
+                            if AppDelegate.showPrint {
+                                print("    ======> success in saving message id: \(igpMessage.igpMessageID)")
+                            }
                             self.success!()
                         }
                     }
@@ -70,11 +74,15 @@ fileprivate class IGFactoryTask: NSObject {
                     
                     
                 }).error {
-                    print("    ======> failure in saving message id: \(igpMessage.igpMessageID) due to room dep")
+                    if AppDelegate.showPrint {
+                        print("    ======> failure in saving message id: \(igpMessage.igpMessageID) due to room dep")
+                    }
                     self.error!()
                 }.execute()
             }).error {
-                print("    ======> failure in saving message id: \(igpMessage.igpMessageID) due to user dep")
+                if AppDelegate.showPrint {
+                    print("    ======> failure in saving message id: \(igpMessage.igpMessageID) due to user dep")
+                }
                 self.error!()
             }.execute()
         }
@@ -84,7 +92,9 @@ fileprivate class IGFactoryTask: NSObject {
     convenience init(roomTask igpRoom: IGPRoom) {
         self.init()
         let task = {
-            print("    ======> saving room id: \(igpRoom.igpID)")
+            if AppDelegate.showPrint {
+                print("    ======> saving room id: \(igpRoom.igpID)")
+            }
             IGFactoryTask(dependencyUserTask: igpRoom.igpChatRoomExtra.igpPeer.igpID, cacheID: igpRoom.igpChatRoomExtra.igpPeer.igpCacheID).success {
                 
                 IGDatabaseManager.shared.perfrmOnDatabaseThread {
@@ -94,13 +104,17 @@ fileprivate class IGFactoryTask: NSObject {
                         IGDatabaseManager.shared.realm.add(room, update: true)
                     }
                     IGFactory.shared.performInFactoryQueue {
-                        print("    ======> success in saving room id: \(igpRoom.igpID)")
+                        if AppDelegate.showPrint {
+                            print("    ======> success in saving room id: \(igpRoom.igpID)")
+                        }
                         self.success!()
                     }
                 }
                 
             }.error {
-                print("    ======> failure in saving room id: \(igpRoom.igpID)")
+                if AppDelegate.showPrint {
+                    print("    ======> failure in saving room id: \(igpRoom.igpID)")
+                }
                 self.error!()
             }.execute()
         }
@@ -111,7 +125,10 @@ fileprivate class IGFactoryTask: NSObject {
     convenience init(dependencyUserTask userID: Int64?, cacheID: String?) {
         self.init()
         let task = {
-            print("    ======> 1. checking user id: \(String(describing: userID))")
+            if AppDelegate.showPrint {
+                print("    ======> 1. checking user id: \(String(describing: userID))")
+            }
+            
             if let id = userID, id != 0 {
                 var isUserInfoInDatabaseValid = false
                 let predicate = NSPredicate(format: "id = %lld", id)
@@ -128,11 +145,15 @@ fileprivate class IGFactoryTask: NSObject {
                 if isUserInfoInDatabaseValid {
                     self.success!()
                 } else {
-                    print("    ======> 2. getting user id: \(String(describing: userID))")
+                    if AppDelegate.showPrint {
+                        print("    ======> 2. getting user id: \(String(describing: userID))")
+                    }
                     IGUserInfoRequest.Generator.generate(userID: id).success({ (responseProtoMessage) in
                         
                         IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                            print("    ======> 3. saving user id: \(String(describing: userID))")
+                            if AppDelegate.showPrint {
+                                print("    ======> 3. saving user id: \(String(describing: userID))")
+                            }
                             switch responseProtoMessage {
                             case let response as IGPUserInfoResponse:
                                 let user = IGRegisteredUser(igpUser: response.igpUser)
@@ -273,10 +294,14 @@ class IGFactory: NSObject {
                         task.status = .executing
                         task.execute()
                 } else {
-                    print ("✪ task thread is already busy")
+                    if AppDelegate.showPrint {
+                        print ("✪ task thread is already busy")
+                    }
                 }
             } else {
-                print ("✔︎ no more tasks in queue")
+                if AppDelegate.showPrint {
+                    print ("✔︎ no more tasks in queue")
+                }
             }
         }
     }
@@ -744,7 +769,7 @@ class IGFactory: NSObject {
     //MARK: ▶︎▶︎ User
     func updateUserStatus(_ userId: Int64, status: IGRegisteredUser.IGLastSeenStatus) {
 
-        print ("◉ Executing Task: " + #function)
+        
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
@@ -772,7 +797,7 @@ class IGFactory: NSObject {
     }
 
     func saveContactsToDatabase(_ contacts:[IGContact]) {
-        print ("◉ Executing Task: " + #function)
+        
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
@@ -814,7 +839,7 @@ class IGFactory: NSObject {
         
         let membersTask = IGFactoryTask()
         membersTask.task = {
-            print ("◉ Executing Task: " + #function)
+            
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
                 IGDatabaseManager.shared.realm.beginWrite()
                 for igpMember in igpMembers {
@@ -877,7 +902,7 @@ class IGFactory: NSObject {
         
         let membersTask = IGFactoryTask()
         membersTask.task = {
-            print ("◉ Executing Task: " + #function)
+            
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
                 IGDatabaseManager.shared.realm.beginWrite()
                 for (index, igpMember) in igpMembers.enumerated() {
@@ -974,7 +999,7 @@ class IGFactory: NSObject {
     }
     
     //TODO: merge with setDeleteRoom
-    func leftRoomInDatabase(roomID: Int64) {
+    func leftRoomInDatabase(roomID: Int64, memberId: Int64) {
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
@@ -1056,7 +1081,7 @@ class IGFactory: NSObject {
             task.task = {
                 IGFactoryTask.init(dependencyUserTask: registredUserID, cacheID: nil).success {
                     IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                        print ("◉ Executing Task: " + #function)
+                        
                         let predicate = NSPredicate(format: "id = %lld", registredUserID)
                         if let userInDb = try! Realm().objects(IGRegisteredUser.self).filter(predicate).first {
                             let phone = igpContact.igpClientID
@@ -1089,7 +1114,7 @@ class IGFactory: NSObject {
             let task = IGFactoryTask()
             task.task = {
                 IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                    print ("◉ Executing Task: " + #function)
+                    
                     let user = IGRegisteredUser(igpUser: igpRegistredUser)
                     user.isInContacts = true
                     try! IGDatabaseManager.shared.realm.write {
@@ -1124,7 +1149,7 @@ class IGFactory: NSObject {
             let task = IGFactoryTask()
             task.task = {
                 IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                    print ("◉ Executing Task: " + #function)
+                    
                     let user = IGRegisteredUser(igpUser: igpRegistredUser)
                     try! IGDatabaseManager.shared.realm.write {
                         IGDatabaseManager.shared.realm.add(user, update: true)
@@ -1157,7 +1182,7 @@ class IGFactory: NSObject {
         task.task = {
             IGFactoryTask(dependencyUserTask: userId, cacheID: nil).success {
                 IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                    print ("◉ Executing Task: " + #function)
+                    
                     let predicate = NSPredicate(format: "id = %lld", userId)
                     if let userInDb = try! Realm().objects(IGRegisteredUser.self).filter(predicate).first {
                         try! IGDatabaseManager.shared.realm.write {
@@ -1198,7 +1223,7 @@ class IGFactory: NSObject {
             task.task = {
                 IGFactoryTask(dependencyUserTask: blockedUser.igpUserID, cacheID: nil).success {
                     IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                        print ("◉ Executing Task: " + #function)
+                        
                         let predicate = NSPredicate(format: "id = %lld", blockedUser.igpUserID)
                         if let userInDb = try! Realm().objects(IGRegisteredUser.self).filter(predicate).first {
                             try! IGDatabaseManager.shared.realm.write {
@@ -1228,7 +1253,7 @@ class IGFactory: NSObject {
         task.task = {
             IGFactoryTask(dependencyUserTask: blockedUserId, cacheID: nil).success {
                 IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                    print ("◉ Executing Task: " + #function)
+                    
                     let predicate = NSPredicate(format: "id = %lld", blockedUserId)
                     if let userInDb = try! Realm().objects(IGRegisteredUser.self).filter(predicate).first {
                         try! IGDatabaseManager.shared.realm.write {
@@ -1429,8 +1454,7 @@ class IGFactory: NSObject {
         
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                print("    ======> update privacy for : \(igPrivacyType)")
-                //let predicate = NSPredicate(format: "id = %lld", privacyType as! CVarArg)
+                
                 if let userPrivacyInDb = IGDatabaseManager.shared.realm.objects(IGUserPrivacy.self).first {
                     try! IGDatabaseManager.shared.realm.write {
                         switch igPrivacyType {
@@ -1450,9 +1474,7 @@ class IGFactory: NSObject {
                             userPrivacyInDb.screenSharing = igPrivacyLevel
                         case .secretChat:
                             userPrivacyInDb.secretChat = igPrivacyLevel
-
                         }
-
                     }
                 } else {
                   let userPrivacy = IGUserPrivacy()
@@ -1588,7 +1610,6 @@ class IGFactory: NSObject {
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                print("    ======> edit room for room id: \(roomID)")
                 let predicate = NSPredicate(format: "id = %lld", roomID)
                 if let roomInDb = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(predicate).first {
                     try! IGDatabaseManager.shared.realm.write {
@@ -1613,11 +1634,9 @@ class IGFactory: NSObject {
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                print("    ======> change type room to pribate for room id: \(roomID)")
                 let predicate = NSPredicate(format: "id = %lld", roomID)
                 if let roomInDb = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(predicate).first {
                     try! IGDatabaseManager.shared.realm.write {
-                        roomInDb.id = roomID
                         roomInDb.groupRoom?.type = .privateRoom
                         roomInDb.groupRoom?.publicExtra?.username = ""
                     }
@@ -1691,10 +1710,20 @@ class IGFactory: NSObject {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
                 print("    ======> room type changed for room id: \(roomId)")
                 let roomPredicate = NSPredicate(format: "id = %lld", roomId)
+                
+                let publicExtraPredicate = NSPredicate(format: "id = %lld", roomId)
+                var publicExtra: IGGroupPublicExtra!
+                if let publicExtraInDb = IGDatabaseManager.shared.realm.objects(IGGroupPublicExtra.self).filter(publicExtraPredicate).first {
+                    publicExtra = publicExtraInDb
+                } else {
+                    publicExtra = IGGroupPublicExtra(id: roomId, username: username)
+                }
+                
                 if let roomInDb = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(roomPredicate).first {
                     try! IGDatabaseManager.shared.realm.write {
+                        publicExtra.username = username
                         roomInDb.groupRoom?.type = .publicRoom
-                        roomInDb.groupRoom?.publicExtra?.username = username
+                        roomInDb.groupRoom?.publicExtra = publicExtra
                     }
                 }
                 IGFactory.shared.performInFactoryQueue {
@@ -1944,7 +1973,7 @@ class IGFactory: NSObject {
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                print("    ======> update avatar for room Id: \(roomId)")
+                
                 let avatar = IGAvatar(igpAvatar: igpAvatar)
                 let predicate = NSPredicate(format: "id = %lld", roomId)
                 if let roomInDb = try! Realm().objects(IGChannelRoom.self).filter(predicate).first {
