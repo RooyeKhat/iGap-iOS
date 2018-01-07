@@ -127,9 +127,33 @@ enum IGError: String {
     //in response to ... (User Two-Step Verification Check Password)
     case userTwoStepVerificationCheckPasswordBadPayload = "10103"
     case userTwoStepVerificationCheckPasswordInternalServerError = "10104"
-    case userTwoStepVerificationCheckPasswordInvalidPassword = "10150"
+    case userTwoStepVerificationCheckPasswordInvalidPassword = "10105"
     case userTwoStepVerificationCheckPasswordMaxTryLock = "10106"
     case userTwoStepVerificationCheckPasswordNoPassword = "10107"
+    
+    case userTwoStepVerificationVerifyRecoveryEmailMaxTryLock = "10110"
+    case userTwoStepVerificationVerifyRecoveryEmailExpiredToken = "10111"
+    case userTwoStepVerificationVerifyRecoveryEmailInvalidToken = "10113"
+    
+    case userTwoStepVerificationChangeRecoveryEmailIsIncorrect_Minor2 = "10114.2"
+    case userTwoStepVerificationChangeRecoveryEmailIsIncorrect_Minor3 = "10114.3"
+    case userTwoStepVerificationChangeRecoveryEmailMaxTryLock = "10116"
+    case userTwoStepVerificationChangeRecoveryEmailConfirmedBefore = "10119"
+    
+    case userTwoStepVerificationRequestRecoveryTokenNoRecoVeryEmail = "10123"
+    case userTwoStepVerificationRequestRecoveryTokenMaxTryLock = "10124"
+    case userTwoStepVerificationRequestRecoveryTokenForbidden = "10154"
+    
+    case userTwoStepVerificationRecoverPasswordByTokenMaxTryLock = "10127"
+    case userTwoStepVerificationRecoverPasswordByTokenExpiredToken = "10128"
+    case userTwoStepVerificationRecoverPasswordByTokenInvalidToken = "10129"
+
+    case userTwoStepVerificationRecoverPasswordByAnswersMaxTryLock = "10133"
+    case userTwoStepVerificationRecoverPasswordByAnswersInvalidAnswers = "10134"
+    case userTwoStepVerificationRecoverPasswordByAnswersForbidden = "10156"
+
+    case userTwoStepVerificationChangeHintMaxTryLock = "10143"
+    case userTwoStepVerificationChangeRecoveryQuestionMaxTryLock = "10138"
     
     case userTwoStepVerificationVerifyPasswordBadPayload = "189"
     case userTwoStepVerificationVerifyPasswordInternalServerError = "190"
@@ -137,6 +161,18 @@ enum IGError: String {
     case userTwoStepVerificationVerifyPasswordForbidden = "192"
     case userTwoStepVerificationVerifyPasswordNoPassword = "193"
     case userTwoStepVerificationVerifyPasswordInvalidPassword = "194"
+
+    case userTwoStepVerificationSetPasswordNewPasswordIsInvalid = "195.2"
+    case userTwoStepVerificationSetPasswordRecoveryEmailIsNotValid_Minor3 = "195.3"
+    case userTwoStepVerificationSetPasswordRecoveryEmailIsNotValid_Minor4 = "195.4"
+    case userTwoStepVerificationSetPasswordFirstRecoveryQuestionIsInvalid = "195.5"
+    case userTwoStepVerificationSetPasswordAnswerOfTheFirstRecoveryQuestionIsInvalid = "195.6"
+    case userTwoStepVerificationSetPasswordSecondRecoveryQuestionIsInvalid = "195.7"
+    case userTwoStepVerificationSetPasswordAnswerOfTheSecondRecoveryQuestionIsInvalid = "195.8"
+    case userTwoStepVerificationSetPasswordHintIsNotValid = "195.9"
+    
+    case userTwoStepVerificationSetPasswordMaxTryLock = "197"
+
     
     case canNotAddThisUserAsAdminToGroup        = "323.3"
     case canNotAddThisUserAsModeratorToGroup    = "320.3"
@@ -151,7 +187,7 @@ enum IGError: String {
     //client Join by InvitedLink
     case clientJoinByInviteLinkForbidden = "632.100"
     case clientJoinByInviteLinkAlreadyJoined = "633.1"
-
+    
 }
 
 //MARK: -

@@ -106,6 +106,8 @@ let protoClassesLookupTable: [Int: (proto: ResponseMessage.Type, reponseHandler:
             IGUserTwoStepVerificationChangeRecoveryQuestionRequest.Handler.self     as IGRequest.Handler.Type),
     30142: (IGPUserTwoStepVerificationChangeHintResponse.self                       as ResponseMessage.Type,
             IGUserTwoStepVerificationChangehintRequest.Handler.self                 as IGRequest.Handler.Type),
+    30146: (IGPUserTwoStepVerificationResendVerifyEmailResponse.self                as ResponseMessage.Type,
+            IGUserTwoStepVerificationResendVerifyEmailRequest.Handler.self          as IGRequest.Handler.Type),
     30143: (IGPUserPrivacyGetRuleResponse.self              as ResponseMessage.Type,
             IGUserPrivacyGetRuleRequest.Handler.self        as IGRequest.Handler.Type),
     30144: (IGPUserPrivacySetRuleResponse.self              as ResponseMessage.Type,
@@ -464,10 +466,19 @@ class IGRequestManager {
                             error(errorData.error, errorData.wait)
                         }
                     } else { // -> successful
-                        if let sucess = correspondingRequestWrapper.success {
-                            sucess(responseProtoMessage)
+                        
+                        if correspondingRequestWrapper.identity == "" { // if not set identity call simple success
+                            if let sucess = correspondingRequestWrapper.success {
+                                sucess(responseProtoMessage)
+                            } else {
+                                requestHandlerClassName.handlePush(responseProtoMessage: responseProtoMessage)
+                            }
                         } else {
-                            requestHandlerClassName.handlePush(responseProtoMessage: responseProtoMessage)
+                            if let sucessPowerful = correspondingRequestWrapper.successPowerful {
+                                sucessPowerful(responseProtoMessage, correspondingRequestWrapper)
+                            } else {
+                                requestHandlerClassName.handlePush(responseProtoMessage: responseProtoMessage)
+                            }
                         }
                     }
                     resolvedRequests[response.igpID] = correspondingRequestWrapper

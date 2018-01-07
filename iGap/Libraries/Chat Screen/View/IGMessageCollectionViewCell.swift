@@ -521,8 +521,8 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
             self.forwardedFromViewHeightConstraint.constant = 20
             
             //MARK: ▶︎ Forward Body
-            if let text = originalMessage.message {
-                
+            let text = originalMessage.message
+            if text != nil && text != "" {
                 forwardedMessageBodyLabel.isHidden = false
                 forwardedMessageBodyLabel.text = text
                 self.forwardedMessageBodyContainerViewHeightConstraint.constant = messageSizes.forwardedMessageBodyHeight
@@ -580,7 +580,7 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
                         }
                     }
                     break
-                case .voice , .audio ,.audioAndText :
+                case .voice :
                     self.forwardedMessageMediaContainerViewHeightConstraint.constant = 0
                     self.forwardedMessageAudioAndVoiceView.isHidden = false
                     self.forwardedMessageAudioAndVoiceViewHeightConstraint.constant = messageSizes.forwardedMessageAttachmentHeight
@@ -589,12 +589,75 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
                     self.forwardedMessageAudioAndVoiceView.addSubview(forwardMediaFileAttachment!)
                     forwardMediaFileAttachment?.attachment = attachment
                     break
+                    
+                case .audio , .audioAndText :
+
+                    self.mediaContainerViewHeightConstraint.constant = 0
+                    self.attachmentViewHeightConstraint.constant = 91.0
+                    self.attachmentContainreView.isHidden = false
+                    self.attachmentThumbnailImageView.isHidden = false
+                    self.attachmentFileNameLabel.isHidden = false
+                    self.attachmentFileArtistLabel.isHidden = false
+                    self.attachmentProgressSlider.isHidden = false
+                    self.attachmentTimeOrSizeLabel.isHidden = false
+                    self.attachmentFileNameLabel.text = attachment.name
+                    if isIncommingMessage {
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb"), for: .normal)
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb"), for: .focused)
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb"), for: .selected)
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb"), for: .highlighted)
+                    } else {
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb_Outgoing"), for: .normal)
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb_Outgoing"), for: .focused)
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb_Outgoing"), for: .selected)
+                        self.attachmentProgressSlider.setThumbImage(UIImage(named: "IG_Message_Cell_Player_Slider_Thumb_Outgoing"), for: .highlighted)
+                    }
+                    
+                    self.attachmentProgressSlider.setValue(0.0, animated: false)
+                    self.attachmentThumbnailImageView.setThumbnail(for: attachment)
+                    self.attachmentProgressSliderLeadingConstraint.constant = 8.0
+                    self.attachmentThumbnailImageView.layer.cornerRadius = 16.0
+                    self.attachmentThumbnailImageView.layer.masksToBounds = true
+                    if self.attachment?.status != .ready {
+                        self.attachmentDownloadUploadIndicatorView.layer.cornerRadius = 16.0
+                        self.attachmentDownloadUploadIndicatorView.layer.masksToBounds = true
+                        self.attachmentDownloadUploadIndicatorView.size = attachment.sizeToString()
+                        self.attachmentDownloadUploadIndicatorView.delegate = self
+                    }
+                    let timeM = Int(attachment.duration / 60)
+                    let timeS = Int(attachment.duration.truncatingRemainder(dividingBy: 60.0))
+                    self.attachmentTimeOrSizeLabel.text = "0:00 / \(timeM):\(timeS)"
+                    
+                    forwardedMessageBodyContainerView.isHidden = true
+                    forwardedMessageBodyLabel.isHidden = true
+                    contactsContainerView.isHidden = false
+                    
+                    self.forwardedMessageAudioAndVoiceViewHeightConstraint.constant = 0
+                    self.forwardedFromViewHeightConstraint.constant = 20
+                    contactsContainerViewHeightConstraint.constant = 100
+                    
+                    timeLabel.backgroundColor = UIColor.clear
                 default:
                     break
                 }
             } else {
-                self.forwardedMessageMediaContainerViewHeightConstraint.constant = 0
-                self.forwardedMessageAudioAndVoiceViewHeightConstraint.constant = 0
+                if originalMessage.type == .contact {
+                    
+                    forwardedMessageBodyContainerView.isHidden = true
+                    forwardedMessageBodyLabel.isHidden = true
+                    contactsContainerView.isHidden = false
+
+                    self.forwardedMessageAudioAndVoiceViewHeightConstraint.constant = 0
+                    self.forwardedFromViewHeightConstraint.constant = 20
+                    contactsContainerViewHeightConstraint.constant = 100
+                    
+                    timeLabel.backgroundColor = UIColor.clear
+                    contactsContainerView.setContact((message.forwardedFrom?.contact!)!, isIncommingMessage: isIncommingMessage)
+                    
+                } else {
+                    self.forwardedMessageMediaContainerViewHeightConstraint.constant = 0
+                    self.forwardedMessageAudioAndVoiceViewHeightConstraint.constant = 0
+                }
             }
         } else {
             self.forwardedFromViewHeightConstraint.constant = 0
@@ -769,30 +832,32 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
                 break
             }
         } else {
-            mediaContainerView.isHidden = true
-            mediaContainerViewHeightConstraint.constant = 0
-            attachmentContainreView.isHidden = true
-            attachmentViewHeightConstraint.constant = 0.0
+            
+            if let forwardMessage = message.forwardedFrom {
+                if forwardMessage.type == .audio  || forwardMessage.type == .audioAndText {
+                    // do nothing
+                } else {
+                    mediaContainerView.isHidden = true
+                    mediaContainerViewHeightConstraint.constant = 0
+                    attachmentContainreView.isHidden = true
+                    attachmentViewHeightConstraint.constant = 0.0
+                }
+            } else {
+                mediaContainerView.isHidden = true
+                mediaContainerViewHeightConstraint.constant = 0
+                attachmentContainreView.isHidden = true
+                attachmentViewHeightConstraint.constant = 0.0
+            }
         }
         
         //MARK: Body Text (message)
-        if let body = message.message {
-//            let start = Date.timeIntervalSinceReferenceDate
+        if  message.message != nil && message.message != "" {
+            let body = message.message
             bodyViewHeightConstraint.constant = messageSizes.messageBodyHeight
-//            let step1 = Date.timeIntervalSinceReferenceDate
-//            print("message.id: \(message.id) Step1: -> \(step1 - start)")
             bodyLabel.text = body
-//            let step2 = Date.timeIntervalSinceReferenceDate
-//            print("message.id: \(message.id) Step2: -> \(step2 - step1)")
             bodyView.isHidden = false
-//            let step3 = Date.timeIntervalSinceReferenceDate
-//            print("message.id: \(message.id) Step3: -> \(step3 - step2)")
             bodyLabel.isHidden = false
-//            let step4 = Date.timeIntervalSinceReferenceDate
-//            print("message.id: \(message.id) Step4: -> \(step4 - step3)")
             timeLabelBottomConstraint.constant = 11.0
-//            let step5 = Date.timeIntervalSinceReferenceDate
-//            print("message.id: \(message.id) Step4: -> \(step5 - step4)")
             timeLabel.backgroundColor = UIColor.clear
             bodyView.backgroundColor = UIColor.clear
             bodyLabel.textColor = UIColor.chatBubbleTextColor(isIncommingMessage: isIncommingMessage)
@@ -820,9 +885,9 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
             timeLabel.text = time.convertToHumanReadable()
             timeLabel.isHidden = false
             timeLabel.textColor = UIColor.chatTimeTextColor(isIncommingMessage: isIncommingMessage)
-            if message.type == .voice || message.type == .file {
-                timeLabel.backgroundColor = UIColor.clear
-            }
+            //if message.type == .voice || message.type == .file {
+            timeLabel.backgroundColor = UIColor.clear
+            //}
         }
         
         //MARK: Edited

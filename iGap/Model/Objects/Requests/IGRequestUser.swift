@@ -823,24 +823,23 @@ class IGUserTwoStepVerificationVerifyPasswordRequest : IGRequest {
 //MARK: -
 class IGUserTwoStepVerificationSetPasswordRequest : IGRequest {
     class Generator: IGRequest.Generator {
-        class func generate(hint: String, questionOne: String, answerOne: String, questionTwo: String, answerTwo: String, newPassword: String, oldPassword: String, recoveryEmail: String) -> IGRequestWrapper {
+        class func generate(oldPassword: String, newPassword: String, questionOne: String, answerOne: String, questionTwo: String, answerTwo: String, hint: String, recoveryEmail: String) -> IGRequestWrapper {
             var setPasswordRequestMessage = IGPUserTwoStepVerificationSetPassword()
-            setPasswordRequestMessage.igpHint = hint
+            setPasswordRequestMessage.igpOldPassword = oldPassword
+            setPasswordRequestMessage.igpNewPassword = newPassword
             setPasswordRequestMessage.igpQuestionOne = questionOne
             setPasswordRequestMessage.igpAnswerOne = answerOne
             setPasswordRequestMessage.igpQuestionTwo = questionTwo
             setPasswordRequestMessage.igpAnswerTwo = answerTwo
-            setPasswordRequestMessage.igpNewPassword = newPassword
-            setPasswordRequestMessage.igpOldPassword = oldPassword
+            setPasswordRequestMessage.igpHint = hint
             setPasswordRequestMessage.igpRecoveryEmail = recoveryEmail
-            
             return IGRequestWrapper(message: setPasswordRequestMessage, actionID: 133)
         }
         
     }
     class Handler : IGRequest.Handler{
         class func interpret(response responseProtoMessage: IGPUserTwoStepVerificationSetPasswordResponse) {
-            //TODO: Complete Me
+            
         }
     }
 }
@@ -868,7 +867,7 @@ class IGUserTwoStepVerificationCheckPasswordRequest : IGRequest {
         class func generate(password: String) -> IGRequestWrapper {
             var checkPasswordRequestMessage = IGPUserTwoStepVerificationCheckPassword()
             checkPasswordRequestMessage.igpPassword = password
-            return IGRequestWrapper(message: checkPasswordRequestMessage, actionID: 135)
+            return IGRequestWrapper(message: checkPasswordRequestMessage, identity: "identity", actionID: 135)
         }
         
     }
@@ -909,7 +908,7 @@ class IGUserTwoStepVerificationChangeRecoveryEmailRequest : IGRequest {
     }
     class Handler : IGRequest.Handler{
         class func interpret(response responseProtoMessage: IGPUserTwoStepVerificationChangeRecoveryEmailResponse) {
-            //TODO: Complete Me
+            
         }
     }
 }
@@ -968,7 +967,7 @@ class IGUserTwoStepVerificationRecoverPasswordByAnswersRequest : IGRequest {
 //MARK: -
 class IGUserTwoStepVerificationChangeRecoveryQuestionRequest : IGRequest {
     class Generator: IGRequest.Generator {
-        class func generate(questionOne: String, answerOne: String, questionTwo: String, answerTwo: String, password: String) -> IGRequestWrapper {
+        class func generate(password: String, questionOne: String, answerOne: String, questionTwo: String, answerTwo: String) -> IGRequestWrapper {
             var changeRecoveryQuestionRequestMessage = IGPUserTwoStepVerificationChangeRecoveryQuestion()
             changeRecoveryQuestionRequestMessage.igpQuestionOne = questionOne
             changeRecoveryQuestionRequestMessage.igpAnswerOne = answerOne
@@ -981,7 +980,7 @@ class IGUserTwoStepVerificationChangeRecoveryQuestionRequest : IGRequest {
     }
     class Handler : IGRequest.Handler{
         class func interpret(response responseProtoMessage: IGPUserTwoStepVerificationChangeRecoveryQuestionResponse) {
-            //TODO: Complete Me
+            
         }
     }
 }
@@ -999,7 +998,22 @@ class IGUserTwoStepVerificationChangehintRequest : IGRequest {
     }
     class Handler : IGRequest.Handler{
         class func interpret(response responseProtoMessage: IGPUserTwoStepVerificationChangeHintResponse) {
-            //TODO: Complete Me
+            
+        }
+    }
+}
+
+class IGUserTwoStepVerificationResendVerifyEmailRequest : IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate() -> IGRequestWrapper {
+            let resendVerifyEmail = IGPUserTwoStepVerificationResendVerifyEmail()
+            return IGRequestWrapper(message: resendVerifyEmail, actionID: 146)
+        }
+        
+    }
+    class Handler : IGRequest.Handler{
+        class func interpret(response responseProtoMessage: IGPUserTwoStepVerificationResendVerifyEmailResponse) {
+            
         }
     }
 }

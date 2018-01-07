@@ -73,18 +73,19 @@ class IGSettingPrivacy_SecurityTableViewController: UITableViewController, UIGes
                 self.tableView.reloadData()
                 break
             case .update(_,_,_,_):
-                print("updating members tableV")
-                // Query messages have changed, so apply them to the TableView
-                self.tableView.reloadData()
+                self.showPrivacyInfo()
                 break
             case .error(let err):
                 // An error occurred while opening the Realm file on the background worker thread
                 fatalError("\(err)")
                 break
             }
-
         }
         
+        showPrivacyInfo()
+    }
+    
+    func showPrivacyInfo(){
         if let avatarPrivacy = userPrivacy?.avatar {
             avatarUserPrivacy = avatarPrivacy
             switch  avatarPrivacy{
@@ -99,6 +100,8 @@ class IGSettingPrivacy_SecurityTableViewController: UITableViewController, UIGes
                 break
             }
         }
+        
+        
         if let userStatePrivacy = userPrivacy?.userStatus {
             lastSeenUserPrivacy = userStatePrivacy
             switch userStatePrivacy {
@@ -113,6 +116,8 @@ class IGSettingPrivacy_SecurityTableViewController: UITableViewController, UIGes
                 break
             }
         }
+        
+        
         if let channelInvitePrivacy = userPrivacy?.channelInvite {
             channelInviteUserPrivacy = channelInvitePrivacy
             switch channelInvitePrivacy {
@@ -128,6 +133,8 @@ class IGSettingPrivacy_SecurityTableViewController: UITableViewController, UIGes
                 break
             }
         }
+        
+        
         if let groupInvitePrivacy = userPrivacy?.groupInvite {
             groupInviteUserPrivacy = groupInvitePrivacy
             switch groupInvitePrivacy {
@@ -140,7 +147,7 @@ class IGSettingPrivacy_SecurityTableViewController: UITableViewController, UIGes
             case .denyAll:
                 whoCanAddingToGroupLabel.text = "Nobody"
                 break
-
+                
             }
         }
     }
@@ -282,17 +289,20 @@ class IGSettingPrivacy_SecurityTableViewController: UITableViewController, UIGes
                         }
                     }
                 }).error({ (errorCode, waitTime) in
-                    switch errorCode {
-                    case .userTwoStepVerificationGetPasswordDetailsBadPayload:
-                        self.showAlert(title: "Alert", message: "Bad payload")
-                    case .userTwoStepVerificationGetPasswordDetailsInternalServerError:
-                        self.showAlert(title: "Alert", message: "Internal Server Error")
-                    case .userTwoStepVerificationGetPasswordDetailsForbidden:
-                        self.showAlert(title: "Alert", message: "Forbidden")
-                    case .userTwoStepVerificationGetPasswordDetailsNoPassword:
-                        self.performSegue(withIdentifier: "GoToTwoStepVerificationPage", sender: self)
-                    default:
-                        break
+                    DispatchQueue.main.async {
+                        hud.hide(animated: true)
+                        switch errorCode {
+                        case .userTwoStepVerificationGetPasswordDetailsBadPayload:
+                            self.showAlert(title: "Alert", message: "Bad payload")
+                        case .userTwoStepVerificationGetPasswordDetailsInternalServerError:
+                            self.showAlert(title: "Alert", message: "Internal Server Error")
+                        case .userTwoStepVerificationGetPasswordDetailsForbidden:
+                            self.showAlert(title: "Alert", message: "Forbidden")
+                        case .userTwoStepVerificationGetPasswordDetailsNoPassword:
+                            self.performSegue(withIdentifier: "GoToTwoStepVerificationPage", sender: self)
+                        default:
+                            break
+                        }
                     }
                 }).send()
             case 2 :

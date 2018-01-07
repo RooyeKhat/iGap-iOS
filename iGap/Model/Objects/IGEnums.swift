@@ -305,3 +305,12 @@ enum IGPrivacyLevel: Int {
 
 }
 
+enum IGTwoStepQuestion: Int {
+    case changeRecoveryQuestion
+    case questionRecoveryPassword
+}
+
+enum IGTwoStepEmail: Int {
+    case verifyEmail
+    case recoverPassword
+}

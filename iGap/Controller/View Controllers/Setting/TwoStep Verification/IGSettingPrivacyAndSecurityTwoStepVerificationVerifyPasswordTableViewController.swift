@@ -41,29 +41,30 @@ class IGSettingPrivacyAndSecurityTwoStepVerificationVerifyPasswordTableViewContr
         return ""
     }
     
+    var twoStepPassword:String?
+    
+    
     func verifyPassword() {
-        self.performSegue(withIdentifier: "showTwoStepOptions", sender: self)
-        return
         if let password = passwordTextField.text, password != "" {
             self.tableView.isUserInteractionEnabled = false
             self.tableView.isScrollEnabled = false
             let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
             hud.mode = .indeterminate
             
-            IGUserTwoStepVerificationCheckPasswordRequest.Generator.generate(password: password).success({ (protoResponse) in
+            IGUserTwoStepVerificationCheckPasswordRequest.Generator.generate(password: password).successPowerful({ (protoResponse, requestWrapper) in
                 DispatchQueue.main.async {
                     if protoResponse is IGPUserTwoStepVerificationCheckPasswordResponse {
-                        hud.hide(animated: true)
-                        self.tableView.isUserInteractionEnabled = true
-                        self.tableView.isScrollEnabled = true
-                        self.performSegue(withIdentifier: "showTwoStepOptions", sender: self)
+                        if let message = requestWrapper.message as? IGPUserTwoStepVerificationCheckPassword {
+                            self.twoStepPassword = message.igpPassword
+                            self.tableView.isUserInteractionEnabled = true
+                            self.tableView.isScrollEnabled = true
+                            self.performSegue(withIdentifier: "showTwoStepOptions", sender: self)
+                        }
                     } else {
-                        //invalid proto response class
-                        //should never happen!
-                        hud.hide(animated: true)
                         self.tableView.isUserInteractionEnabled = true
                         self.tableView.isScrollEnabled = true
                     }
+                    hud.hide(animated: true)
                 }
             }).error({ (errorCode, waitTime) in
                 DispatchQueue.main.async {
@@ -94,16 +95,8 @@ class IGSettingPrivacyAndSecurityTwoStepVerificationVerifyPasswordTableViewContr
     @IBAction func didTapOnForgotPasswordButton(_ sender: UIButton) {
         let alertVC = UIAlertController(title: "Forgot Password?", message: "Which option do you want to use to change your password?", preferredStyle: .actionSheet)
         
-        
         let email = UIAlertAction(title: "Email", style: .default) { (action) in
-            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
-            hud.mode = .indeterminate
-            self.tableView.isScrollEnabled = false
-            IGUserTwoStepVerificationRequestRecoveryTokenRequest.Generator.generate().success({ (success) in
-                
-            }).error({ (errorCode, waitTime) in
-                
-            }).send()
+            self.performSegue(withIdentifier: "showRecoverByEmail", sender: self)
         }
         let questions = UIAlertAction(title: "Recovery Questions", style: .default) { (action) in
             self.performSegue(withIdentifier: "changePasswordWithQuestions", sender: self)
@@ -111,7 +104,9 @@ class IGSettingPrivacyAndSecurityTwoStepVerificationVerifyPasswordTableViewContr
         let cancel = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
             
         }
-        alertVC.addAction(email)
+        if (twoStepVerification?.hasVerifiedEmailAddress)! {
+            alertVC.addAction(email)
+        }
         alertVC.addAction(questions)
         alertVC.addAction(cancel)
         
@@ -122,6 +117,18 @@ class IGSettingPrivacyAndSecurityTwoStepVerificationVerifyPasswordTableViewContr
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let destinationVC = segue.destination as? IGSettingPrivacyAndSecurityTwoStepVerificationOptionsTableViewController {
             destinationVC.twoStepVerification = twoStepVerification
+            destinationVC.password = twoStepPassword
+        }
+        
+        if let destinationVC = segue.destination as? IGSettingPrivacyAndSecurityTwoStepVerificationChangeSecurityQuestionsTableViewController {
+            destinationVC.password = twoStepPassword
+            destinationVC.questionOne = twoStepVerification?.question1
+            destinationVC.questionTwo = twoStepVerification?.question2
+            destinationVC.pageAction = IGTwoStepQuestion.questionRecoveryPassword
+        }
+        
+        if let destinationVC = segue.destination as? IGSettingPrivacyAndSecurityTwoStepVerificationVerifyUnconfirmedEmail {
+            destinationVC.pageAction = IGTwoStepEmail.recoverPassword
         }
     }
 }
