@@ -35,13 +35,13 @@ class IGChannelsTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        let sortProperties = [SortDescriptor(keyPath: "pinId", ascending: false), SortDescriptor(keyPath: "sortimgTimestamp", ascending: false)]
         let predicate = NSPredicate(format: "typeRaw = %d AND isParticipant = 1", IGRoom.IGType.channel.rawValue)
-        rooms = try! Realm().objects(IGRoom.self).filter(predicate).sorted(byKeyPath: "sortimgTimestamp", ascending: false)
-        
+        rooms = try! Realm().objects(IGRoom.self).filter(predicate).sorted(by: sortProperties)
         
         self.tableView.register(IGChatRoomListTableViewCell.nib(), forCellReuseIdentifier: IGChatRoomListTableViewCell.cellReuseIdentifier())
-        
+        self.tableView.tableFooterView = UIView()
         self.tableView.backgroundColor = UIColor(red: 247.0/255.0, green: 247.0/255.0, blue: 247.0/255.0, alpha: 1.0)
         self.view.backgroundColor = UIColor(red: 247.0/255.0, green: 247.0/255.0, blue: 247.0/255.0, alpha: 1.0)
         self.tableView.tableHeaderView?.backgroundColor = UIColor(red: 247.0/255.0, green: 247.0/255.0, blue: 247.0/255.0, alpha: 1.0)
@@ -128,7 +128,7 @@ class IGChannelsTableViewController: UITableViewController {
         cell.setRoom(room: rooms![indexPath.row])
         
         cell.rightButtons =
-            [MGSwipeButton(title: "Delete", backgroundColor: UIColor(red: 252.0/255.0, green: 23.0/255.0, blue: 22.0/255.0, alpha: 1), callback: { (sender: MGSwipeTableCell!) -> Bool in
+            [MGSwipeButton(title: "Options...", backgroundColor: UIColor(red: 252.0/255.0, green: 23.0/255.0, blue: 22.0/255.0, alpha: 1), callback: { (sender: MGSwipeTableCell!) -> Bool in
                 let room = cell.room!
                 //let room = self.rooms![indexPath.row]
                 let title = room.title != nil ? room.title! : "Delete"
@@ -159,6 +159,50 @@ class IGChannelsTableViewController: UITableViewController {
                         break
                     }
                     
+                })
+                
+                var muteTitle = "Mute"
+                if room.mute == IGRoom.IGRoomMute.mute {
+                    muteTitle = "UnMute"
+                }
+                let mute = UIAlertAction(title: muteTitle, style: .default, handler: { (action) in
+                    if self.connectionStatus == .waitingForNetwork || self.connectionStatus == .connecting {
+                        let alert = UIAlertController(title: "Error", message: "No Network Connection", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(okAction)
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    } else {
+                        self.muteRoom(room: room)
+                    }
+                })
+                
+                var pinTitle = "Pin"
+                if room.pinId > 0 {
+                    pinTitle = "UnPin"
+                }
+                let pin = UIAlertAction(title: pinTitle, style: .default, handler: { (action) in
+                    if self.connectionStatus == .waitingForNetwork || self.connectionStatus == .connecting {
+                        let alert = UIAlertController(title: "Error", message: "No Network Connection", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(okAction)
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    } else {
+                        self.pinRoom(room: room)
+                    }
+                })
+                
+                let report = UIAlertAction(title: "Report", style: .default, handler: { (action) in
+                    if self.connectionStatus == .waitingForNetwork || self.connectionStatus == .connecting {
+                        let alert = UIAlertController(title: "Error", message: "No Network Connection", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(okAction)
+                        self.present(alert, animated: true, completion: nil)
+                        
+                    } else {
+                        self.report(room: room)
+                    }
                 })
                 
                 let remove = UIAlertAction(title: "Delete", style: .destructive, handler: { (action) in
@@ -240,6 +284,11 @@ class IGChannelsTableViewController: UITableViewController {
                 if room.type == .chat || room.type == .group {
                     alertC.addAction(clear)
                 }
+                
+                alertC.addAction(pin)
+                alertC.addAction(mute)
+                alertC.addAction(report)
+
                 if room.chatRoom != nil {
                     alertC.addAction(remove)
                 } else {
@@ -298,6 +347,9 @@ class IGChannelsTableViewController: UITableViewController {
         if (segue.identifier == "showRoomMessages") {
             let destination = segue.destination as! IGMessageViewController
             destination.room = selectedRoomForSegue
+        } else if segue.identifier == "showReportPage" {
+            let report =  segue.destination as! IGReport
+            report.room = selectedRoomForSegue
         }
     }
     
@@ -378,6 +430,168 @@ extension IGChannelsTableViewController {
                 self.hud.hide(animated: true)
             }
         }).send()
+    }
+    
+    func muteRoom(room: IGRoom) {
+        
+        let roomId = room.id
+        var roomMute = IGRoom.IGRoomMute.mute
+        if room.mute == IGRoom.IGRoomMute.mute {
+            roomMute = .unmute
+        }
+        
+        self.hud = MBProgressHUD.showAdded(to: self.view.superview!, animated: true)
+        self.hud.mode = .indeterminate
+        IGClientMuteRoomRequest.Generator.generate(roomId: roomId, roomMute: roomMute).success({ (protoResponse) in
+            DispatchQueue.main.async {
+                switch protoResponse {
+                case let muteRoomResponse as IGPClientMuteRoomResponse:
+                    IGClientMuteRoomRequest.Handler.interpret(response: muteRoomResponse)
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).error({ (errorCode , waitTime) in
+            DispatchQueue.main.async {
+                switch errorCode {
+                case .timeout:
+                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).send()
+    }
+    
+    func pinRoom(room: IGRoom) {
+        let roomId = room.id
+        var pin = true
+        if room.pinId > 0 {
+            pin = false
+        }
+        
+        self.hud = MBProgressHUD.showAdded(to: self.view.superview!, animated: true)
+        self.hud.mode = .indeterminate
+        IGClientPinRoomRequest.Generator.generate(roomId: roomId, pin: pin).success({ (protoResponse) in
+            DispatchQueue.main.async {
+                switch protoResponse {
+                case let pinRoomResponse as IGPClientPinRoomResponse:
+                    IGClientPinRoomRequest.Handler.interpret(response: pinRoomResponse)
+                    break
+                    
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).error({ (errorCode , waitTime) in
+            DispatchQueue.main.async {
+                switch errorCode {
+                case .timeout:
+                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).send()
+    }
+    
+    func reportRoom(roomId: Int64, reason: IGPClientRoomReport.IGPReason) {
+        self.hud = MBProgressHUD.showAdded(to: self.view.superview!, animated: true)
+        self.hud.mode = .indeterminate
+        IGClientRoomReportRequest.Generator.generate(roomId: roomId, reason: reason).success({ (protoResponse) in
+            DispatchQueue.main.async {
+                switch protoResponse {
+                case _ as IGPClientRoomReportResponse:
+                    let alert = UIAlertController(title: "Success", message: "Your report has been successfully submitted", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).error({ (errorCode , waitTime) in
+            DispatchQueue.main.async {
+                switch errorCode {
+                case .timeout:
+                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                    break
+                    
+                case .clientRoomReportReportedBefore:
+                    let alert = UIAlertController(title: "Error", message: "This Room Reported Before", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                    break
+                    
+                case .clientRoomReportForbidden:
+                    let alert = UIAlertController(title: "Error", message: "Room Report Fobidden", preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                    break
+                    
+                default:
+                    break
+                }
+                self.hud.hide(animated: true)
+            }
+        }).send()
+    }
+    
+    func report(room: IGRoom){
+        let roomId = room.id
+        
+        let alertC = UIAlertController(title: "Report Room Reason", message: nil, preferredStyle: .actionSheet)
+        let abuse = UIAlertAction(title: "Abuse", style: .default, handler: { (action) in
+            self.reportRoom(roomId: roomId, reason: IGPClientRoomReport.IGPReason.abuse)
+        })
+        
+        let spam = UIAlertAction(title: "Spam", style: .default, handler: { (action) in
+            self.reportRoom(roomId: roomId, reason: IGPClientRoomReport.IGPReason.spam)
+        })
+        
+        let violence = UIAlertAction(title: "Violence", style: .default, handler: { (action) in
+            self.reportRoom(roomId: roomId, reason: IGPClientRoomReport.IGPReason.violence)
+        })
+        
+        let pornography = UIAlertAction(title: "Pornography", style: .default, handler: { (action) in
+            self.reportRoom(roomId: roomId, reason: IGPClientRoomReport.IGPReason.pornography)
+        })
+        
+        let other = UIAlertAction(title: "Other ", style: .default, handler: { (action) in
+            self.selectedRoomForSegue = room
+            self.performSegue(withIdentifier: "showReportPage", sender: self)
+        })
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: { (action) in
+            
+        })
+        
+        alertC.addAction(abuse)
+        alertC.addAction(spam)
+        alertC.addAction(violence)
+        alertC.addAction(pornography)
+        alertC.addAction(other)
+        alertC.addAction(cancel)
+        
+        self.present(alertC, animated: true, completion: {
+            
+        })
     }
     
     func deleteChat(room: IGRoom) {

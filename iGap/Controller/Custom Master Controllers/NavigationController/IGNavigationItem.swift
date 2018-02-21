@@ -164,13 +164,13 @@ class IGNavigationItem: UINavigationItem {
     }
     
     private func addModalViewLeftItem(title: String) {
-        let leftViewFrame = CGRect(x:0, y:0, width: 50, height:80)
+        let leftViewFrame = CGRect(x:0, y:0, width: 50, height:40)
         leftViewContainer = IGTappableView(frame: leftViewFrame)
         leftViewContainer!.backgroundColor = UIColor.clear
         let leftBarButton = UIBarButtonItem(customView: leftViewContainer!)
         self.leftBarButtonItem = leftBarButton
         
-        let labelFrame = CGRect(x: -10, y: 20, width: 100, height:31)
+        let labelFrame = CGRect(x: -10, y: 4.5, width: 100, height:31)
         let label = UILabel(frame: labelFrame)
         label.text = title
         label.textColor = UIColor.white
@@ -190,7 +190,7 @@ class IGNavigationItem: UINavigationItem {
         leftViewContainer!.backgroundColor = UIColor.clear
         let leftBarButton = UIBarButtonItem(customView: leftViewContainer!)
         self.leftBarButtonItem = leftBarButton
-        let settingViewFrame = CGRect(x: -10, y: 5, width: 31, height:31)
+        let settingViewFrame = CGRect(x: 3, y: 4.5, width: 31, height:31)
         let settingButtonImageView = UIImageView(frame: settingViewFrame)
         settingButtonImageView.image = UIImage(named:"IG_Nav_Bar_Menu")
         settingButtonImageView.tintColor = UIColor.organizationalColor()
@@ -198,9 +198,9 @@ class IGNavigationItem: UINavigationItem {
     }
     
     private func addComopseButton() {
-        let composeButtonFrame = CGRect(x: 20, y: 5, width: 31, height:31)
+        let composeButtonFrame = CGRect(x: 10, y: 7.5, width: 25, height: 25)
         let composeButtonImageView = UIImageView(frame: composeButtonFrame)
-        composeButtonImageView.image = UIImage(named:"IG_Nav_Bar_Compose")
+        composeButtonImageView.image = UIImage(named:"IG_Nav_Bar_Plus")
         composeButtonImageView.tintColor = UIColor.organizationalColor()
         rightViewContainer!.addSubview(composeButtonImageView)
     }
@@ -309,6 +309,7 @@ class IGNavigationItem: UINavigationItem {
         self.centerViewMainLabel!.font = UIFont.igFont(ofSize: 16.0, weight: .bold)//boldSystemFont(ofSize: 16)
         self.centerViewContainer!.addSubview(self.centerViewMainLabel!)
         self.centerViewMainLabel!.snp.makeConstraints { (make) in
+            make.top.equalTo(self.centerViewContainer!.snp.top).offset(0)
             make.centerX.equalTo(self.centerViewContainer!.snp.centerX)
         }
         
@@ -320,6 +321,21 @@ class IGNavigationItem: UINavigationItem {
         self.centerViewSubLabel!.snp.makeConstraints { (make) in
             make.top.equalTo(self.centerViewMainLabel!.snp.bottom).offset(3)
             make.centerX.equalTo(self.centerViewContainer!.snp.centerX)
+        }
+        
+        if room.mute == .mute {
+            let muteFrame = CGRect(x: 20, y: 5, width: 25, height: 25)
+            let imgMute = UIImageView(frame: muteFrame)
+            imgMute.image = UIImage(named:"IG_Chat_List_Mute")
+            
+            imgMute.image = imgMute.image!.withRenderingMode(.alwaysTemplate)
+            imgMute.tintColor = UIColor.white
+            
+            self.centerViewContainer!.addSubview(imgMute)
+            imgMute.snp.makeConstraints { (make) in
+                make.top.equalTo(self.centerViewMainLabel!.snp.top).offset(3)
+                make.right.equalTo(self.centerViewMainLabel!.snp.left).offset(-8)
+            }
         }
         
         if let peer = room.chatRoom?.peer {

@@ -491,11 +491,11 @@ class IGFactory: NSObject {
     func updateRoomLastMessageIfPossible(roomID: Int64) {
         IGDatabaseManager.shared.perfrmOnDatabaseThread {
             print("    ======> updating room last message and unread count")
-            let predicate = NSPredicate(format: "id = %d", roomID)
+            let predicate = NSPredicate(format: "id = %lld", roomID)
             if let roomInDb = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(predicate).first {
                 var shouldIncreamentUnreadCount = true
                 var lastMessage: IGRoomMessage?
-                let messagePredicate = NSPredicate(format: "roomId = %d AND isDeleted == false", roomID)
+                let messagePredicate = NSPredicate(format: "roomId = %lld AND isDeleted == false", roomID)
                 
                 if let lastMessageInDb = IGDatabaseManager.shared.realm.objects(IGRoomMessage.self).filter(messagePredicate).sorted(byKeyPath: "creationTime").last {
                     if let authorHash = lastMessageInDb.authorHash {
@@ -1515,6 +1515,32 @@ class IGFactory: NSObject {
         self.performNextFactoryTaskIfPossible()
     }
     
+    func updateBio(bio: String) {
+        let task = IGFactoryTask()
+        
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                
+                let predicate = NSPredicate(format: "id = %lld", IGAppManager.sharedManager.userID()!)
+                try! IGDatabaseManager.shared.realm.write {
+                    if let userRegister = IGDatabaseManager.shared.realm.objects(IGRegisteredUser.self).filter(predicate).first {
+                        userRegister.bio = bio
+                    }
+                }
+                
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
+    
 
     
     //MARK: --------------------------------------------------------
@@ -1603,6 +1629,52 @@ class IGFactory: NSObject {
         }.error {
             self.removeTaskFromQueueAndPerformNext(task)
         }.addToQueue() //.addAsHighPriorityToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
+    
+    func muteRoom(roomId: Int64, roomMute: IGRoom.IGRoomMute) {
+        let task = IGFactoryTask()
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                let predicate = NSPredicate(format: "id = %lld", roomId)
+                if let roomInDb = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(predicate).first {
+                    try! IGDatabaseManager.shared.realm.write {
+                        roomInDb.mute = roomMute
+                    }
+                }
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
+    
+    func pinRoom(roomId: Int64, pinId: Int64) {
+        let task = IGFactoryTask()
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                let predicate = NSPredicate(format: "id = %lld", roomId)
+                if let roomInDb = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(predicate).first {
+                    try! IGDatabaseManager.shared.realm.write {
+                        roomInDb.pinId = pinId
+                    }
+                }
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
         self.performNextFactoryTaskIfPossible()
     }
     

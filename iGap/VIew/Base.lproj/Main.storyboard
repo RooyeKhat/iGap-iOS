@@ -688,6 +688,7 @@ Please wait 0:59</string>
                         <segue destination="Tms-xQ-fpG" kind="presentation" identifier="createANewChannel" id="xIk-je-mZv"/>
                         <segue destination="KAm-kE-MQe" kind="presentation" identifier="createANewChat" id="fQp-QT-GFJ"/>
                         <segue destination="fZY-DA-os7" kind="presentation" identifier="createANewGroup" id="406-yW-OVG"/>
+                        <segue destination="u0S-Sh-Wik" kind="show" identifier="showReportPage" id="k9M-cr-cw2"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3hZ-9r-pPP" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -734,11 +735,10 @@ Please wait 0:59</string>
                                 </cells>
                             </collectionView>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uLc-FX-WjP">
-                                <rect key="frame" x="9" y="619" width="304" height="38"/>
+                                <rect key="frame" x="5" y="622" width="365" height="40"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="304" id="F1h-1f-Sid"/>
-                                    <constraint firstAttribute="height" constant="38" id="RW0-kj-5Ez"/>
+                                    <constraint firstAttribute="height" constant="40" id="aud-T9-6SW"/>
                                 </constraints>
                                 <state key="normal" title="JOIN"/>
                                 <connections>
@@ -1043,17 +1043,18 @@ Please wait 0:59</string>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="uLc-FX-WjP" firstAttribute="leading" secondItem="ziz-lj-PYe" secondAttribute="leadingMargin" constant="-7" id="5lp-4e-8FK"/>
+                            <constraint firstItem="uLc-FX-WjP" firstAttribute="leading" secondItem="ziz-lj-PYe" secondAttribute="leading" constant="5" id="62H-fk-IXR"/>
                             <constraint firstItem="4eQ-gi-PNj" firstAttribute="trailing" secondItem="9G6-WI-YVj" secondAttribute="trailing" id="74i-Qd-PtK"/>
                             <constraint firstItem="4eQ-gi-PNj" firstAttribute="leading" secondItem="ziz-lj-PYe" secondAttribute="leading" id="9rZ-uo-M4r"/>
                             <constraint firstItem="4eQ-gi-PNj" firstAttribute="top" secondItem="5mR-SM-BTR" secondAttribute="bottom" id="Obr-Bc-Azv"/>
+                            <constraint firstItem="7LG-Y0-Ncx" firstAttribute="top" secondItem="uLc-FX-WjP" secondAttribute="bottom" constant="5" id="OnJ-wA-E9b"/>
+                            <constraint firstAttribute="trailing" secondItem="uLc-FX-WjP" secondAttribute="trailing" constant="5" id="PwG-7u-wmd"/>
                             <constraint firstAttribute="trailingMargin" secondItem="5mR-SM-BTR" secondAttribute="trailing" constant="-8" id="RBW-9Z-t7u"/>
                             <constraint firstItem="9G6-WI-YVj" firstAttribute="top" secondItem="v1Y-Qo-n3M" secondAttribute="bottom" id="Ry3-td-qgA"/>
                             <constraint firstAttribute="trailing" secondItem="4eQ-gi-PNj" secondAttribute="trailing" id="STr-jl-Csu"/>
                             <constraint firstItem="9G6-WI-YVj" firstAttribute="bottom" secondItem="4eQ-gi-PNj" secondAttribute="bottom" id="bg0-rO-guD"/>
                             <constraint firstItem="7LG-Y0-Ncx" firstAttribute="top" secondItem="4eQ-gi-PNj" secondAttribute="bottom" id="l9j-I8-pUw"/>
                             <constraint firstItem="4eQ-gi-PNj" firstAttribute="leading" secondItem="9G6-WI-YVj" secondAttribute="leading" id="n0a-xe-TX1"/>
-                            <constraint firstItem="7LG-Y0-Ncx" firstAttribute="top" secondItem="uLc-FX-WjP" secondAttribute="bottom" constant="10" id="n6d-V0-zfO"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Title" id="yRi-nN-wYI" customClass="IGNavigationItem" customModule="iGap" customModuleProvider="target"/>
@@ -1093,6 +1094,7 @@ Please wait 0:59</string>
                         <segue destination="FAw-oC-UEn" kind="show" identifier="showChannelinfo" id="rLo-Q7-ujr"/>
                         <segue destination="IMI-O0-WbA" kind="show" identifier="showGroupInfo" id="EiK-dt-3cR"/>
                         <segue destination="kXl-mH-2Sj" kind="presentation" identifier="showForwardMessageTable" id="Paj-YA-riE"/>
+                        <segue destination="u0S-Sh-Wik" kind="show" identifier="showReportPage" id="jRj-hY-oEr"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="43J-bV-cLm" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1156,6 +1158,7 @@ Please wait 0:59</string>
                     <navigationItem key="navigationItem" title="Chats" id="O9t-Iy-ktM"/>
                     <connections>
                         <segue destination="KJT-Hl-jm5" kind="show" identifier="showRoomMessages" id="m3u-p1-8tV"/>
+                        <segue destination="u0S-Sh-Wik" kind="show" identifier="showReportPage" id="hbz-f8-Hpu"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NcG-vN-1HE" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1215,6 +1218,7 @@ Please wait 0:59</string>
                     <navigationItem key="navigationItem" title="Groups" id="lxH-uI-Dp1"/>
                     <connections>
                         <segue destination="KJT-Hl-jm5" kind="show" identifier="showRoomMessages" id="4Pl-n5-pIH"/>
+                        <segue destination="u0S-Sh-Wik" kind="show" identifier="showReportPage" id="skX-lt-yXs"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="j5m-zA-McG" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1255,6 +1259,7 @@ Please wait 0:59</string>
                     <navigationItem key="navigationItem" title="Channel" id="PXt-DS-2oY"/>
                     <connections>
                         <segue destination="KJT-Hl-jm5" kind="show" identifier="showRoomMessages" id="I27-tX-EAz"/>
+                        <segue destination="u0S-Sh-Wik" kind="show" identifier="showReportPage" id="l1W-zY-RFK"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gzb-g4-KQB" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1622,7 +1627,7 @@ Cg
                                 <segment title="Chat"/>
                                 <segment title="Contact"/>
                             </segments>
-                            <color key="tintColor" red="0.0" green="0.69019607839999997" blue="0.74901960779999999" alpha="1" colorSpace="calibratedRGB"/>
+                            <color key="tintColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <connections>
                                 <action selector="didChangedSegmentValue:" destination="yQZ-92-FlH" eventType="valueChanged" id="FeP-jy-Pn7"/>
                             </connections>
@@ -1756,12 +1761,36 @@ Cg
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" textLabel="7vh-eD-H8o" detailTextLabel="eXs-u9-Cod" style="IBUITableViewCellStyleValue1" id="E7d-ii-1TZ">
+                                        <rect key="frame" x="0.0" y="296" width="375" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="E7d-ii-1TZ" id="xVD-5n-SuC">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Bio" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="7vh-eD-H8o" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="16" y="12" width="24.5" height="20.5"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="eXs-u9-Cod" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="315" y="12" width="44" height="20.5"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" red="0.54901960780000003" green="0.54901960780000003" blue="0.54901960780000003" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                             <tableViewSection id="Vic-TU-6Eb">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" textLabel="ekd-7f-ZXH" style="IBUITableViewCellStyleDefault" id="1Qu-Xg-hFT">
-                                        <rect key="frame" x="0.0" y="332" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="376" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="1Qu-Xg-hFT" id="d22-LT-Pj8">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
@@ -1778,7 +1807,7 @@ Cg
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" textLabel="e5h-Jy-JTY" style="IBUITableViewCellStyleDefault" id="Owq-N0-Yaa">
-                                        <rect key="frame" x="0.0" y="376" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="420" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Owq-N0-Yaa" id="wsD-yD-tRZ">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
@@ -1795,7 +1824,7 @@ Cg
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" accessoryType="disclosureIndicator" indentationWidth="10" textLabel="zNY-ua-BjS" style="IBUITableViewCellStyleDefault" id="zXV-mn-TMp">
-                                        <rect key="frame" x="0.0" y="420" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="464" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="zXV-mn-TMp" id="BFd-2W-gL1">
                                             <rect key="frame" x="0.0" y="0.0" width="341" height="43.5"/>
@@ -1812,7 +1841,7 @@ Cg
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" textLabel="UcT-cI-ksj" style="IBUITableViewCellStyleDefault" id="eeT-FI-1vc">
-                                        <rect key="frame" x="0.0" y="464" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="508" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="eeT-FI-1vc" id="AYE-eA-fes">
                                             <rect key="frame" x="0.0" y="0.0" width="341" height="43.5"/>
@@ -1829,7 +1858,7 @@ Cg
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" textLabel="OKw-s7-c0n" style="IBUITableViewCellStyleDefault" id="w8Z-Lm-2ri">
-                                        <rect key="frame" x="0.0" y="508" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="552" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="w8Z-Lm-2ri" id="uc3-Cc-6za">
                                             <rect key="frame" x="0.0" y="0.0" width="341" height="43.5"/>
@@ -1846,7 +1875,7 @@ Cg
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" textLabel="NaZ-jW-le5" style="IBUITableViewCellStyleDefault" id="EyG-tL-hGB">
-                                        <rect key="frame" x="0.0" y="552" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="596" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="EyG-tL-hGB" id="KvG-0u-4FN">
                                             <rect key="frame" x="0.0" y="0.0" width="341" height="43.5"/>
@@ -1867,14 +1896,14 @@ Cg
                             <tableViewSection id="Tbg-JX-NsE">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" textLabel="otj-Te-CfM" style="IBUITableViewCellStyleDefault" id="Txm-X2-ZI5">
-                                        <rect key="frame" x="0.0" y="632" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="676" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Txm-X2-ZI5" id="XLY-MX-1Ua">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Delete Chat" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="otj-Te-CfM" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
-                                                    <rect key="frame" x="16" y="0.0" width="343" height="43.5"/>
+                                                    <rect key="frame" x="15" y="0.0" width="345" height="43.5"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <color key="textColor" red="0.0" green="0.69019607839999997" blue="0.74901960779999999" alpha="1" colorSpace="calibratedRGB"/>
@@ -1888,7 +1917,7 @@ Cg
                             <tableViewSection id="Dxa-9q-xD5">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="20c-wx-TgZ">
-                                        <rect key="frame" x="0.0" y="712" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="756" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="20c-wx-TgZ" id="LWc-T1-ENi">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
@@ -1920,6 +1949,7 @@ Cg
                     <navigationItem key="navigationItem" title="Title" id="XRa-Wc-9k1" customClass="IGNavigationItem" customModule="iGap" customModuleProvider="target"/>
                     <connections>
                         <outlet property="avatarView" destination="02D-LA-PqR" id="Zzm-R5-F8z"/>
+                        <outlet property="bioLabel" destination="eXs-u9-Cod" id="hfr-CE-pd5"/>
                         <outlet property="blockContactLabel" destination="e5h-Jy-JTY" id="IZc-TG-TDB"/>
                         <outlet property="displayNameLabel" destination="ZY7-4E-Lhg" id="HZw-uG-rbG"/>
                         <outlet property="phoneNumberLabel" destination="y46-OX-toO" id="q7z-Ig-Iis"/>
@@ -4935,6 +4965,56 @@ Cg
             </objects>
             <point key="canvasLocation" x="4132.5" y="-1182.0422535211267"/>
         </scene>
+        <!--Report-->
+        <scene sceneID="jCV-2M-SGV">
+            <objects>
+                <tableViewController id="u0S-Sh-Wik" customClass="IGReport" customModule="iGap" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="default" rowHeight="44" sectionHeaderHeight="18" sectionFooterHeight="18" id="Bys-n6-siz">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                        <sections>
+                            <tableViewSection headerTitle="Report Description" id="ZFU-FT-tMn">
+                                <cells>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" rowHeight="88" id="kf1-qh-X67">
+                                        <rect key="frame" x="0.0" y="55.5" width="375" height="88"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kf1-qh-X67" id="t0H-u4-5Sj">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="87.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dhI-xl-id4">
+                                                    <rect key="frame" x="16" y="11" width="343" height="66"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                </textView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="dhI-xl-id4" firstAttribute="leading" secondItem="t0H-u4-5Sj" secondAttribute="leadingMargin" id="Gbn-BQ-ePs"/>
+                                                <constraint firstItem="dhI-xl-id4" firstAttribute="top" secondItem="t0H-u4-5Sj" secondAttribute="topMargin" id="MB3-wp-oEC"/>
+                                                <constraint firstItem="dhI-xl-id4" firstAttribute="trailing" secondItem="t0H-u4-5Sj" secondAttribute="trailingMargin" id="iWj-3J-bCA"/>
+                                                <constraint firstItem="dhI-xl-id4" firstAttribute="bottom" secondItem="t0H-u4-5Sj" secondAttribute="bottomMargin" id="s8i-Ny-hDh"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
+                        </sections>
+                        <connections>
+                            <outlet property="dataSource" destination="u0S-Sh-Wik" id="7N9-GO-4IL"/>
+                            <outlet property="delegate" destination="u0S-Sh-Wik" id="t1b-W2-eSl"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" id="MJM-oB-wFn" customClass="IGNavigationItem" customModule="iGap" customModuleProvider="target"/>
+                    <connections>
+                        <outlet property="txtReportDescription" destination="dhI-xl-id4" id="CQO-uN-gk8"/>
+                    </connections>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="h6P-d8-kqG" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1470" y="-5606"/>
+        </scene>
     </scenes>
     <resources>
         <image name="IG_Chat_Screen_Attachment" width="38" height="38"/>
@@ -4962,12 +5042,14 @@ Cg
         <image name="IG_Tabbar_Recent_On" width="25" height="25"/>
     </resources>
     <inferredMetricsTieBreakers>
+        <segue reference="Paj-YA-riE"/>
+        <segue reference="jRj-hY-oEr"/>
         <segue reference="Z1Q-fW-ByF"/>
         <segue reference="k1z-sz-mLi"/>
         <segue reference="xjE-gJ-o8r"/>
         <segue reference="Whi-Zq-oPV"/>
         <segue reference="liy-Td-nok"/>
-        <segue reference="m3u-p1-8tV"/>
+        <segue reference="ebc-Vg-0Gq"/>
         <segue reference="OlC-Gu-0Zm"/>
     </inferredMetricsTieBreakers>
 </document>

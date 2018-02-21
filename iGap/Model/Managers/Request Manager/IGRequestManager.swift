@@ -108,12 +108,19 @@ let protoClassesLookupTable: [Int: (proto: ResponseMessage.Type, reponseHandler:
             IGUserTwoStepVerificationChangehintRequest.Handler.self                 as IGRequest.Handler.Type),
     30146: (IGPUserTwoStepVerificationResendVerifyEmailResponse.self                as ResponseMessage.Type,
             IGUserTwoStepVerificationResendVerifyEmailRequest.Handler.self          as IGRequest.Handler.Type),
-    30143: (IGPUserPrivacyGetRuleResponse.self              as ResponseMessage.Type,
-            IGUserPrivacyGetRuleRequest.Handler.self        as IGRequest.Handler.Type),
-    30144: (IGPUserPrivacySetRuleResponse.self              as ResponseMessage.Type,
-            IGUserPrivacySetRuleRequest.Handler.self        as IGRequest.Handler.Type),
-    30145: (IGPUserVerifyNewDeviceResponse.self             as ResponseMessage.Type,
-            IGUserVerifyNewDeviceRequest.Handler.self       as IGRequest.Handler.Type),
+    30143: (IGPUserPrivacyGetRuleResponse.self                                      as ResponseMessage.Type,
+            IGUserPrivacyGetRuleRequest.Handler.self                                as IGRequest.Handler.Type),
+    30144: (IGPUserPrivacySetRuleResponse.self                                      as ResponseMessage.Type,
+            IGUserPrivacySetRuleRequest.Handler.self                                as IGRequest.Handler.Type),
+    30145: (IGPUserVerifyNewDeviceResponse.self                                     as ResponseMessage.Type,
+            IGUserVerifyNewDeviceRequest.Handler.self                               as IGRequest.Handler.Type),
+    30147: (IGPUserProfileSetBioResponse.self                                       as ResponseMessage.Type,
+            IGUserProfileSetBioRequest.Handler.self                                 as IGRequest.Handler.Type),
+    30148: (IGPUserProfileGetBioResponse.self                                       as ResponseMessage.Type,
+            IGUserProfileGetBioRequest.Handler.self                                 as IGRequest.Handler.Type),
+    30149: (IGPUserReportResponse.self                                              as ResponseMessage.Type,
+            IGUserReportRequest.Handler.self                                        as IGRequest.Handler.Type),
+    
 
     //Chat: 302xx
     30200: (IGPChatGetRoomResponse.self                     as ResponseMessage.Type,
@@ -270,6 +277,12 @@ let protoClassesLookupTable: [Int: (proto: ResponseMessage.Type, reponseHandler:
             IGClientJoinByUsernameRequest.Handler.self      as IGRequest.Handler.Type),
     30613: (IGPClientCountRoomHistoryResponse.self          as ResponseMessage.Type,
             IGClientCountRoomHistoryRequest.Handler.self    as IGRequest.Handler.Type),
+    30614: (IGPClientMuteRoomResponse.self                  as ResponseMessage.Type,
+            IGClientMuteRoomRequest.Handler.self            as IGRequest.Handler.Type),
+    30615: (IGPClientPinRoomResponse.self                   as ResponseMessage.Type,
+            IGClientPinRoomRequest.Handler.self             as IGRequest.Handler.Type),
+    30616: (IGPClientRoomReportResponse.self                as ResponseMessage.Type,
+            IGClientRoomReportRequest.Handler.self          as IGRequest.Handler.Type),
 
     //File: 307xx
     30700: (IGPFileUploadOptionResponse.self                as ResponseMessage.Type,

@@ -116,8 +116,30 @@ enum IGError: String {
     
     case userGetDeleteTokenLockedManyTries      = "153.1"
     case userDeleteTokenInvalidCode             = "156.1"
+    case userProfileUpdateUsernameIsInvaild = "164.2"
+    case userProfileUpdateUsernameHasAlreadyBeenTaken = "164.3"
     case userProfileUpdateLock                  = "175.2"
 
+    case groupUpdateUsernameIsInvalid = "366.2"
+    case groupUpdateUsernameHasAlreadyBeenTakenByAnotherUser = "366.3"
+    case groupUpdateUsernameMoreThanTheAllowedUsernmaeHaveBeenSelectedByYou = "366.4"
+    case groupUpdateUsernameLock = "368"
+    case groupUpdateUsernameForbidden = "369"
+    
+    case channelUpdateUsernameIsInvalid = "455.2"
+    case channelUpdateUsernameHasAlreadyBeenTakenByAnotherUser = "455.3"
+    case channelUpdateUsernameMoreThanTheAllowedUsernmaeHaveBeenSelectedByYou = "455.4"
+    case channelUpdateUsernameLock = "457"
+    case channelUpdateUsernameForbidden = "458"
+    
+    case clientRoomReportDescriptionIsInvalid = "657.4"
+    case clientRoomReportReportedBefore = "658"
+    case clientRoomReportForbidden = "659"
+    
+    case userReportDescriptionIsInvalid = "10165"
+    case userReportReportedBefore = "10167"
+    case userReportForbidden = "10168"
+    
     //in response to ... (User Two-Step Verification Get Password Deyails)
     case userTwoStepVerificationGetPasswordDetailsBadPayload = "185"
     case userTwoStepVerificationGetPasswordDetailsInternalServerError = "186"
@@ -173,6 +195,7 @@ enum IGError: String {
     
     case userTwoStepVerificationSetPasswordMaxTryLock = "197"
 
+    case userProfileSetBioBadPayload = "10161"
     
     case canNotAddThisUserAsAdminToGroup        = "323.3"
     case canNotAddThisUserAsModeratorToGroup    = "320.3"

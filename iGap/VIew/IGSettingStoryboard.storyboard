@@ -1006,12 +1006,48 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" accessoryType="disclosureIndicator" indentationWidth="10" id="TSM-Y0-6Bv">
+                                        <rect key="frame" x="0.0" y="247" width="414" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="TSM-Y0-6Bv" id="un2-jd-uW3">
+                                            <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bio" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="av4-xl-QjL" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="28" y="13" width="24.333333333333329" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6hl-sS-aj8" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="70" y="13" width="297" height="15"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="U8B-6Q-fdT">
+                                                    <rect key="frame" x="336" y="13" width="20" height="15"/>
+                                                </activityIndicatorView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="bottomMargin" secondItem="6hl-sS-aj8" secondAttribute="bottom" constant="5" id="1uv-Qs-504"/>
+                                                <constraint firstItem="av4-xl-QjL" firstAttribute="leading" secondItem="un2-jd-uW3" secondAttribute="leadingMargin" constant="8" id="2FQ-E6-PkB"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="U8B-6Q-fdT" secondAttribute="trailing" constant="12" id="4sX-kR-92x"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="6hl-sS-aj8" secondAttribute="trailing" constant="1" id="HU3-2v-aH6"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="U8B-6Q-fdT" secondAttribute="bottom" constant="5" id="dBW-Pm-bnr"/>
+                                                <constraint firstItem="av4-xl-QjL" firstAttribute="top" secondItem="un2-jd-uW3" secondAttribute="topMargin" constant="2" id="ldU-p3-6p2"/>
+                                                <constraint firstItem="6hl-sS-aj8" firstAttribute="leading" secondItem="un2-jd-uW3" secondAttribute="leadingMargin" constant="50" id="rjs-94-ZMD"/>
+                                                <constraint firstItem="U8B-6Q-fdT" firstAttribute="top" secondItem="un2-jd-uW3" secondAttribute="topMargin" constant="2" id="vBy-8O-Jcu"/>
+                                                <constraint firstItem="6hl-sS-aj8" firstAttribute="top" secondItem="un2-jd-uW3" secondAttribute="topMargin" constant="2" id="vwq-aJ-i9l"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                             <tableViewSection headerTitle="" id="ogl-ap-skV">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" accessoryType="disclosureIndicator" indentationWidth="10" id="d1e-rR-QyG">
-                                        <rect key="frame" x="0.0" y="283" width="414" height="44"/>
+                                        <rect key="frame" x="0.0" y="327" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="d1e-rR-QyG" id="2i7-CC-ECK">
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
@@ -1031,7 +1067,7 @@
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" accessoryType="disclosureIndicator" indentationWidth="10" id="vBl-v6-FOm">
-                                        <rect key="frame" x="0.0" y="327" width="414" height="44"/>
+                                        <rect key="frame" x="0.0" y="371" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="vBl-v6-FOm" id="bhq-lw-oaJ">
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
@@ -1078,7 +1114,7 @@
                             <tableViewSection headerTitle="" id="fyS-Ot-UyQ">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" id="dTv-mn-P7d">
-                                        <rect key="frame" x="0.0" y="407" width="414" height="44"/>
+                                        <rect key="frame" x="0.0" y="451" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="dTv-mn-P7d" id="Ikd-bL-c7H">
                                             <rect key="frame" x="0.0" y="0.0" width="414" height="43.666666666666664"/>
@@ -1112,6 +1148,8 @@
                     </tableView>
                     <navigationItem key="navigationItem" title="Account" id="gN9-Ew-k25" customClass="IGNavigationItem" customModule="iGap" customModuleProvider="target"/>
                     <connections>
+                        <outlet property="bioEntryLabel" destination="6hl-sS-aj8" id="bOL-12-eOH"/>
+                        <outlet property="bioIndicator" destination="U8B-6Q-fdT" id="H3X-RT-aoz"/>
                         <outlet property="emailEntryLabel" destination="9Wq-B7-WiT" id="jv9-gZ-FzT"/>
                         <outlet property="emailIndicator" destination="mBB-tD-qL0" id="0VW-gM-wk8"/>
                         <outlet property="nicknameEntryLabel" destination="NBn-q4-Bve" id="t6K-rw-FFG"/>
@@ -1124,6 +1162,7 @@
                         <segue destination="6Sp-ZJ-mgs" kind="show" identifier="GoToEmailPage" id="cfq-em-srA"/>
                         <segue destination="NUN-eA-XK7" kind="show" identifier="GoToSelfDestructionTimePage" id="Xzv-Yc-EAf"/>
                         <segue destination="aK4-46-ezj" kind="show" identifier="GoToDeleteAccountPage" id="a2N-Qn-Owm"/>
+                        <segue destination="tJ3-G3-f6s" kind="show" identifier="GoToBioPage" id="NqG-Ht-dmY"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Wu9-3g-XES" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -2268,8 +2307,8 @@ To proceed, confirm that your new number can recieve SMS or calls and tap Next t
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="iGap Home" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="knh-E9-ZXD" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
-                                                    <rect key="frame" x="27" y="13" width="86" height="16"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="iGap Official Home" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="knh-E9-ZXD" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="27" y="13" width="143.33333333333334" height="16"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2289,17 +2328,17 @@ To proceed, confirm that your new number can recieve SMS or calls and tap Next t
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="iGap Blog" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hl8-tc-JGI" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
-                                                    <rect key="frame" x="27" y="13" width="74" height="16"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="iGap Official Blog" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hl8-tc-JGI" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="27" y="13" width="132" height="20"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="hl8-tc-JGI" firstAttribute="leading" secondItem="USo-b0-HlV" secondAttribute="leadingMargin" constant="7" id="FWt-tK-bz6"/>
-                                                <constraint firstAttribute="bottomMargin" secondItem="hl8-tc-JGI" secondAttribute="bottom" constant="4" id="atk-Ck-bwR"/>
-                                                <constraint firstItem="hl8-tc-JGI" firstAttribute="top" secondItem="USo-b0-HlV" secondAttribute="topMargin" constant="2" id="tjM-Jw-SVr"/>
+                                                <constraint firstItem="hl8-tc-JGI" firstAttribute="bottom" secondItem="USo-b0-HlV" secondAttribute="bottomMargin" id="4bu-CV-f6a"/>
+                                                <constraint firstItem="hl8-tc-JGI" firstAttribute="top" secondItem="USo-b0-HlV" secondAttribute="topMargin" constant="2" id="O7d-R6-HJa"/>
+                                                <constraint firstItem="hl8-tc-JGI" firstAttribute="leading" secondItem="USo-b0-HlV" secondAttribute="leadingMargin" constant="7" id="dCn-5H-5BC"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -2310,17 +2349,19 @@ To proceed, confirm that your new number can recieve SMS or calls and tap Next t
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Support " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Cvf-x2-sNf" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
-                                                    <rect key="frame" x="27" y="13" width="67" height="16"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Support Request" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Cvf-x2-sNf" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="27" y="13" width="129.33333333333334" height="20"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="20" id="3Aj-iV-b4P"/>
+                                                    </constraints>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstAttribute="bottomMargin" secondItem="Cvf-x2-sNf" secondAttribute="bottom" constant="4" id="Dkr-IQ-tqf"/>
-                                                <constraint firstItem="Cvf-x2-sNf" firstAttribute="leading" secondItem="Bhy-AU-CeT" secondAttribute="leadingMargin" constant="7" id="Fx1-aQ-rCw"/>
-                                                <constraint firstItem="Cvf-x2-sNf" firstAttribute="top" secondItem="Bhy-AU-CeT" secondAttribute="topMargin" constant="2" id="bfU-b0-WgI"/>
+                                                <constraint firstItem="Cvf-x2-sNf" firstAttribute="leading" secondItem="Bhy-AU-CeT" secondAttribute="leadingMargin" constant="7" id="469-lE-e8s"/>
+                                                <constraint firstItem="Cvf-x2-sNf" firstAttribute="top" secondItem="Bhy-AU-CeT" secondAttribute="topMargin" constant="2" id="61A-Xk-rhL"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -2856,8 +2897,8 @@ Please wait 0:59</string>
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43.666666666666664"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Voice call" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IVx-Ob-UJs" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
-                                                    <rect key="frame" x="27" y="13" width="73" height="15.333333333333336"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Call" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IVx-Ob-UJs" customClass="IGLabel" customModule="iGap" customModuleProvider="target">
+                                                    <rect key="frame" x="27" y="13" width="28.666666666666671" height="15.333333333333336"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -3008,6 +3049,7 @@ Please wait 0:59</string>
                         <outlet property="numberOfBlockedContacts" destination="fhw-QB-h72" id="1gI-GH-brW"/>
                         <outlet property="whoCanAddingMeToChannelLabel" destination="jLc-TO-d0d" id="4Cb-Yz-gIY"/>
                         <outlet property="whoCanAddingToGroupLabel" destination="QQs-cY-Zgo" id="PR7-EJ-wce"/>
+                        <outlet property="whoCanCallMe" destination="JMX-Ih-EI8" id="Lfe-2B-IEQ"/>
                         <outlet property="whoCanSeeLastSeenLabel" destination="JIi-Ye-zob" id="oBs-Aa-KTm"/>
                         <outlet property="whoCanSeeProfilePhotoLabel" destination="f5t-hj-6yn" id="8yJ-v9-lrz"/>
                         <segue destination="dYd-F8-aEP" kind="show" identifier="GoToBlockListPageFromPrivacyAndSecurity" id="7wc-J4-g56"/>
@@ -5465,6 +5507,64 @@ kay*****@gm**.com</string>
             </objects>
             <point key="canvasLocation" x="1477" y="1712"/>
         </scene>
+        <!--Username-->
+        <scene sceneID="5Hy-38-9xK">
+            <objects>
+                <tableViewController storyboardIdentifier="BioPage" id="tJ3-G3-f6s" customClass="IGSettingAccountBioTableViewController" customModule="iGap" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="default" rowHeight="44" sectionHeaderHeight="18" sectionFooterHeight="18" id="QZN-mk-hBa">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                        <label key="tableFooterView" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="e0g-fe-KkU">
+                            <rect key="frame" x="0.0" y="97" width="414" height="44"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <sections>
+                            <tableViewSection id="qbw-Lf-Udj">
+                                <cells>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" id="9BJ-VD-f5q">
+                                        <rect key="frame" x="0.0" y="35" width="414" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="9BJ-VD-f5q" id="7fC-NH-iGA">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.666666666666664"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Bio" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="F4Y-Uf-GO9">
+                                                    <rect key="frame" x="20" y="1" width="395" height="40"/>
+                                                    <nil key="textColor"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailingMargin" secondItem="F4Y-Uf-GO9" secondAttribute="trailing" constant="-21" id="6Sd-lk-5Bt"/>
+                                                <constraint firstItem="F4Y-Uf-GO9" firstAttribute="centerY" secondItem="7fC-NH-iGA" secondAttribute="centerY" id="KYc-1k-9Xj"/>
+                                                <constraint firstItem="F4Y-Uf-GO9" firstAttribute="leading" secondItem="7fC-NH-iGA" secondAttribute="leadingMargin" id="RAv-QQ-Txa"/>
+                                                <constraint firstItem="F4Y-Uf-GO9" firstAttribute="top" secondItem="7fC-NH-iGA" secondAttribute="topMargin" constant="-10" id="zmm-ZQ-DQ6"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
+                        </sections>
+                        <connections>
+                            <outlet property="dataSource" destination="tJ3-G3-f6s" id="aU8-ix-oqV"/>
+                            <outlet property="delegate" destination="tJ3-G3-f6s" id="etl-9S-VoV"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Username" id="o2L-dw-yXj" customClass="IGNavigationItem" customModule="iGap" customModuleProvider="target"/>
+                    <connections>
+                        <outlet property="bioTextField" destination="F4Y-Uf-GO9" id="O3V-iy-2OS"/>
+                        <outlet property="txtBioHint" destination="e0g-fe-KkU" id="5hR-kl-Zxf"/>
+                    </connections>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="8B8-kE-KrD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1113.0434782608697" y="-13053.260869565218"/>
+        </scene>
     </scenes>
     <resources>
         <image name="IG_Settings_Camera" width="25" height="25"/>
@@ -5507,8 +5607,8 @@ Afg
     <inferredMetricsTieBreakers>
         <segue reference="Pqu-UA-ZWb"/>
         <segue reference="v4b-3a-R6D"/>
-        <segue reference="P15-0g-TjZ"/>
-        <segue reference="v0b-nh-nsK"/>
+        <segue reference="Qum-5d-uYe"/>
+        <segue reference="Xzv-Yc-EAf"/>
         <segue reference="7wc-J4-g56"/>
     </inferredMetricsTieBreakers>
 </document>

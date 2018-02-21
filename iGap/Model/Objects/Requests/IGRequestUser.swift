@@ -1175,3 +1175,63 @@ class IGUserVerifyNewDeviceRequest: IGRequest {
     }
 
 }
+
+class IGUserProfileSetBioRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate(bio: String) -> IGRequestWrapper {
+            var userProfileSetBio = IGPUserProfileSetBio()
+            userProfileSetBio.igpBio = bio
+            return IGRequestWrapper(message: userProfileSetBio, actionID: 147)
+        }
+    }
+    
+    class Handler: IGRequest.Handler {
+        class func interpret(response responseProtoMessage: IGPUserProfileSetBioResponse) {
+            IGFactory.shared.updateBio(bio: responseProtoMessage.igpBio)
+        }
+        
+        override class func handlePush(responseProtoMessage: Message) {
+            if let response = responseProtoMessage as? IGPUserProfileSetBioResponse {
+                self.interpret(response: response)
+            }
+        }
+    }
+}
+
+class IGUserProfileGetBioRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate() -> IGRequestWrapper {
+            return IGRequestWrapper(message: IGPUserProfileGetBio(), actionID: 148)
+        }
+    }
+    
+    class Handler: IGRequest.Handler {
+        class func interpret(response responseProtoMessage: IGPUserProfileGetBioResponse) {
+            IGFactory.shared.updateBio(bio: responseProtoMessage.igpBio)
+        }
+        
+        override class func handlePush(responseProtoMessage: Message) {
+            if let response = responseProtoMessage as? IGPUserProfileGetBioResponse {
+                self.interpret(response: response)
+            }
+        }
+    }
+}
+
+class IGUserReportRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate(userId: Int64, reason: IGPUserReport.IGPReason, description: String = "") -> IGRequestWrapper {
+            var userReport = IGPUserReport()
+            userReport.igpUserID = userId
+            userReport.igpReason = reason
+            userReport.igpDescription = description
+            return IGRequestWrapper(message: userReport, actionID: 149)
+        }
+    }
+    
+    class Handler: IGRequest.Handler {
+        class func interpret(response responseProtoMessage: IGPUserReportResponse) {
+            
+        }
+    }
+}

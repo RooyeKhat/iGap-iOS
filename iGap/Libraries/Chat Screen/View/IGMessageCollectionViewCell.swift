@@ -150,7 +150,7 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
             if isEdited {
                 textWithTime = text.appending("xxxxxxxxxxxxx")
             } else {
-                textWithTime = text.appending("xxxxxxx")
+                textWithTime = text.appending("xxxxxxxx")
             }
         } else {
             textWithTime = text.appending("")
@@ -637,6 +637,24 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
                     contactsContainerViewHeightConstraint.constant = 100
                     
                     timeLabel.backgroundColor = UIColor.clear
+                    
+                case .file, .fileAndText:
+                    
+                    self.forwardedMessageAudioAndVoiceViewHeightConstraint.constant = 0
+                    self.attachmentThumbnailImageView.isHidden = false
+                    self.attachmentFileNameLabel.isHidden = false
+                    self.attachmentTimeOrSizeLabel.isHidden = false
+                    self.attachmentContainreView.isHidden = false
+                    self.mediaContainerViewHeightConstraint.constant = 0
+                    self.attachmentViewHeightConstraint.constant = 55.0
+                    self.attachmentFileNameLabel.text = attachment.name
+                    self.attachmentThumbnailImageView.setThumbnail(for: attachment)
+                    self.attachmentTimeOrSizeLabel.text = attachment.sizeToString()
+                    if self.attachment?.status != .ready {
+                        self.attachmentDownloadUploadIndicatorView.layer.masksToBounds = true
+                        self.attachmentDownloadUploadIndicatorView.delegate = self
+                    }
+                    
                 default:
                     break
                 }
@@ -732,6 +750,7 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
                 self.mediaContainerViewHeightConstraint.constant = 0
                 self.attachmentProgressSliderLeadingConstraint.constant = 30.0
                 self.attachmentViewHeightConstraint.constant = 68.0
+                self.attachmentThumbnailImageView.isHidden = false
                 self.attachmentContainreView.isHidden = false
                 self.attachmentPlayVoiceButton.isHidden = false
                 self.attachmentFileNameLabel.isHidden = false
@@ -816,12 +835,14 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
                 break
             case .file, .fileAndText:
                 
+                self.attachmentThumbnailImageView.isHidden = false
                 self.attachmentFileNameLabel.isHidden = false
                 self.attachmentTimeOrSizeLabel.isHidden = false
                 self.attachmentContainreView.isHidden = false
                 self.mediaContainerViewHeightConstraint.constant = 0
                 self.attachmentViewHeightConstraint.constant = 55.0
                 self.attachmentFileNameLabel.text = attachment.name
+                self.attachmentThumbnailImageView.setThumbnail(for: attachment)
                 self.attachmentTimeOrSizeLabel.text = attachment.sizeToString()
                 if self.attachment?.status != .ready {
                     self.attachmentDownloadUploadIndicatorView.layer.cornerRadius = 16.0
@@ -836,6 +857,9 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
             if let forwardMessage = message.forwardedFrom {
                 if forwardMessage.type == .audio  || forwardMessage.type == .audioAndText {
                     // do nothing
+                } else if forwardMessage.type == .file  || forwardMessage.type == .fileAndText {
+                    mediaContainerView.isHidden = true
+                    mediaContainerViewHeightConstraint.constant = 0
                 } else {
                     mediaContainerView.isHidden = true
                     mediaContainerViewHeightConstraint.constant = 0
@@ -1000,7 +1024,7 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
             
             if attachment.status == .ready {
                 self.mediaDownloadUploadIndicatorView.setState(attachment.status)
-                setThumbnailForAttachments()
+                //setThumbnailForAttachments()
                 if attachment.type == .gif {
                     attachment.loadData()
                     if let data = attachment.data {
@@ -1062,7 +1086,7 @@ class IGMessageCollectionViewCell: IGMessageGeneralCollectionViewCell {
             
             if attachment.status == .ready {
                 self.forwardedMediaDownloadUploadIndicatorView.setState(attachment.status)
-                setThumbnailForForwardedAttachments()
+                //setThumbnailForForwardedAttachments()
                 if attachment.type == .gif {
                     attachment.loadData()
                     if let data = attachment.data {
@@ -1127,14 +1151,14 @@ extension IGMessageCollectionViewCell: IGDownloadUploadIndicatorViewDelegate {
         }
         
         if let attachment = self.attachment {
-            IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: {
+            IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: { (attachment) -> Void in
                 
             }, failure: {
                 
             })
         }
         if let forwardAttachment = self.forwardedAttachment {
-            IGDownloadManager.sharedManager.download(file: forwardAttachment, previewType: .originalFile, completion: {
+            IGDownloadManager.sharedManager.download(file: forwardAttachment, previewType: .originalFile, completion: { (attachment) -> Void in
                 
             }, failure: {
                 

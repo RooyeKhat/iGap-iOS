@@ -38,6 +38,7 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
     @IBOutlet weak var lastMessageStatusContainerViewWidthConstraint: NSLayoutConstraint!
     @IBOutlet weak var roomTypeIndicatorImageView: UIImageView!
     @IBOutlet weak var roomTitleLabelLeftConstraint: NSLayoutConstraint!
+    @IBOutlet weak var imgMute: UIImageView!
     
     let currentLoggedInUserID = IGAppManager.sharedManager.userID()
     
@@ -86,7 +87,7 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
     
     func getUserAvatarAgain(_ aNotification: Notification) {
         if let userId = aNotification.userInfo?["user"] as? Int64{
-            let predicate = NSPredicate(format: "id = %d", userId )
+            let predicate = NSPredicate(format: "id = %lld", userId )
             if let userInDb = try! Realm().objects(IGRegisteredUser.self).filter(predicate).first {
              // setUserStatus(userInDb)
             }
@@ -121,7 +122,8 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
 
     
     func initialConfiguration() {
-        lastMessageStatusContainerView.backgroundColor = UIColor.red//organizationalColor()
+        self.selectionStyle = .none
+        lastMessageStatusContainerView.backgroundColor = UIColor.red
         avatarView.clean()
         nameLabel.text = ""
         lastMessageLabel.text = ""
@@ -151,6 +153,21 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
             roomTypeIndicatorImageView.image = UIImage(named: "IG_Chat_List_Type_Channel")
             roomTitleLabelLeftConstraint.constant = 36
         }
+
+        if room.mute == IGRoom.IGRoomMute.mute {
+            lastMessageStatusContainerView.backgroundColor = UIColor.gray
+            imgMute.image = UIImage(named: "IG_Chat_List_Mute")
+            imgMute.isHidden = false
+        } else {
+            lastMessageStatusContainerView.backgroundColor = UIColor.red
+            imgMute.isHidden = true
+        }
+        
+        if room.pinId > 0 {
+            contentView.backgroundColor = UIColor(red: 230.0/255.0, green: 230.0/255.0, blue: 230.0/255.0, alpha: 1.0)
+        } else {
+            contentView.backgroundColor = UIColor(red: 247.0/255.0, green: 247.0/255.0, blue: 247.0/255.0, alpha: 1.0)
+        }
         
         if room.unreadCount > 0 {
             nameLabel.font = UIFont.igFont(ofSize: 15.0, weight: .bold)
@@ -161,6 +178,7 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
             
             timeLabel.font = UIFont.igFont(ofSize: 12.0, weight: .regular)
             timeLabel.textColor = UIColor.black
+            
         } else {
             nameLabel.font = UIFont.igFont(ofSize: 15.0, weight: .regular)
             nameLabel.textColor = UIColor(red: 38.0/255.0, green: 38.0/255.0, blue: 38.0/255.0, alpha: 1.0)
@@ -216,39 +234,49 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
                     }
                 }
             }
-            
-            if isLastMessageIncomming {
-                lastMessageStatusContainerView.isHidden = true
-                deliveryStateImageView.isHidden = true
-                unreadCountLabel.isHidden = true
-            } else {
+
+            if room.pinId > 0 {
                 lastMessageStatusContainerView.isHidden = false
                 deliveryStateImageView.isHidden = false
                 unreadCountLabel.isHidden = true
-                if let lastMessage = room.lastMessage {
-                    switch lastMessage.status {
-                    case .sending:
-                        deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Pending")
-                        lastMessageStatusContainerView.backgroundColor = UIColor.clear
-                        break
-                    case .sent:
-                        deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Sent")
-                        lastMessageStatusContainerView.backgroundColor = UIColor.clear
-                        break
-                    case .delivered:
-                        deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Delivered")
-                        lastMessageStatusContainerView.backgroundColor = UIColor.clear
-                        break
-                    case .seen:
-                        deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Seen")
-                        lastMessageStatusContainerView.backgroundColor = UIColor.clear
-                        break
-                    case .failed:
-                        deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Failed")
-                        lastMessageStatusContainerView.backgroundColor = UIColor.red
-                        break
-                    default:
-                        break
+                deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Pin")
+                lastMessageStatusContainerView.backgroundColor = UIColor.clear
+            } else {
+
+                if isLastMessageIncomming {
+                    lastMessageStatusContainerView.isHidden = true
+                    deliveryStateImageView.isHidden = true
+                    unreadCountLabel.isHidden = true
+                    
+                } else {
+                    lastMessageStatusContainerView.isHidden = false
+                    deliveryStateImageView.isHidden = false
+                    unreadCountLabel.isHidden = true
+                    if let lastMessage = room.lastMessage {
+                        switch lastMessage.status {
+                        case .sending:
+                            deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Pending")
+                            lastMessageStatusContainerView.backgroundColor = UIColor.clear
+                            break
+                        case .sent:
+                            deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Sent")
+                            lastMessageStatusContainerView.backgroundColor = UIColor.clear
+                            break
+                        case .delivered:
+                            deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Delivered")
+                            lastMessageStatusContainerView.backgroundColor = UIColor.clear
+                            break
+                        case .seen:
+                            deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Seen")
+                            lastMessageStatusContainerView.backgroundColor = UIColor.clear
+                            break
+                        case .failed:
+                            deliveryStateImageView.image = UIImage(named: "IG_Chat_List_Delivery_State_Failed")
+                            lastMessageStatusContainerView.backgroundColor = UIColor.red
+                            break
+                        default:
+                            break
+                        }
                     }
                 }
             }

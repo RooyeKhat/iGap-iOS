@@ -83,6 +83,10 @@ extension UIColor {
         return UIColor.white
     }
     
+    class func senderNameColor() -> UIColor {
+        return UIColor(red: 0.0/255.0, green: 188.0/255.0, blue: 202.0/255.0, alpha: 1.0)
+    }
+    
     class func chatBubbleBackground(isIncommingMessage: Bool) -> UIColor {
         if isIncommingMessage {
             return UIColor.incommingChatBuubleBackgroundColor()
@@ -292,6 +296,8 @@ extension NSCache {
     }
 }
 
+var imagesMap = [String : UIImageView]()
+
 //MARK: -
 extension UIImageView {
     func setThumbnail(for attachment:IGFile) {
@@ -304,52 +310,86 @@ extension UIImageView {
 //                }
 //            }
 //        }
-        
-        if let thumbnail = attachment.smallThumbnail {
-            do {
-                var path = URL(string: "")
-                if attachment.attachedImage != nil {
-                    self.image = attachment.attachedImage
+        if attachment.type == .voice {
+              self.image = UIImage(named:"IG_Message_Cell_Voice")
+        } else if attachment.type == .file {
+            let filename: NSString = attachment.name! as NSString
+            let fileExtension = filename.pathExtension
+            
+            if fileExtension != "" {
+                if fileExtension == "doc" {
+                    self.image = UIImage(named:"IG_Message_Cell_File_Doc")
+                    
+                } else if fileExtension == "exe" {
+                    self.image = UIImage(named:"IG_Message_Cell_File_Exe")
+                    
+                } else if fileExtension == "pdf" {
+                    self.image = UIImage(named:"IG_Message_Cell_File_Pdf")
+                    
+                } else if fileExtension == "txt" {
+                    self.image = UIImage(named:"IG_Message_Cell_File_Txt")
+                    
                 } else {
-                    var image: UIImage?
-                    path = thumbnail.path()
-                    if FileManager.default.fileExists(atPath: path!.path) {
-                        image = UIImage(contentsOfFile: path!.path)
-                    }
-                    
-                    if image != nil {
-                        self.image = image
-                    } else {
-                        throw NSError(domain: "asa", code: 1234, userInfo: nil)
-                    }
+                    self.image = UIImage(named:"IG_Message_Cell_File_Generic")
                 }
-            } catch {
-                IGDownloadManager.sharedManager.download(file: thumbnail, previewType:.smallThumbnail, completion: {
-                    DispatchQueue.main.async {
-                        self.setThumbnail(for: attachment)
-                    }
-                }, failure: {
-                    
-                })
+                
+            } else {
+                self.image = UIImage(named:"IG_Message_Cell_File_Generic")
             }
+            
+        } else if attachment.type == .audio {
+            self.image = UIImage(named:"IG_Message_Cell_Player_Default_Cover")
         } else {
-            switch attachment.type {
-            case .image:
-                self.image = nil
-                break
-            case .gif:
-                break
-            case .video:
-                break
-            case .audio:
-                self.image = UIImage(named:"IG_Message_Cell_Player_Default_Cover")
-                break
-            case .voice:
-                break
-            case .file:
-                break
+            if let image = UIImage.originalImage(for: attachment) {
+                self.image = image
+            } else if let thumbnail = attachment.smallThumbnail {
+                do {
+                    var path = URL(string: "")
+                    if attachment.attachedImage != nil {
+                        self.image = attachment.attachedImage
+                    } else {
+                        var image: UIImage?
+                        path = thumbnail.path()
+                        if FileManager.default.fileExists(atPath: path!.path) {
+                            image = UIImage(contentsOfFile: path!.path)
+                        }
+                        
+                        if image != nil {
+                            self.image = image
+                        } else {
+                            throw NSError(domain: "asa", code: 1234, userInfo: nil)
+                        }
+                    }
+                } catch {
+                    imagesMap[attachment.cacheID!] = self
+                    IGDownloadManager.sharedManager.download(file: thumbnail, previewType:.smallThumbnail, completion: { (attachment) -> Void in
+                        DispatchQueue.main.async {
+                            if let image = imagesMap[attachment.cacheID!]{
+                                image.setThumbnail(for: attachment)
+                            }
+                        }
+                    }, failure: {
+                        
+                    })
+                }
+            } else {
+                switch attachment.type {
+                case .image:
+                    self.image = nil
+                    break
+                case .gif:
+                    break
+                case .video:
+                    break
+                case .audio:
+                    self.image = UIImage(named:"IG_Message_Cell_Player_Default_Cover")
+                    break
+                default:
+                    break
+                }
             }
         }
+        
     }
     
     func setImage(for attachment:IGFile) {
@@ -383,7 +423,7 @@ extension UIImageView {
                     }
                 }
             } catch {
-                IGDownloadManager.sharedManager.download(file: smallThumbnail, previewType:.smallThumbnail, completion: {
+                IGDownloadManager.sharedManager.download(file: smallThumbnail, previewType:.smallThumbnail, completion: { (attachment) -> Void in
                     DispatchQueue.main.async {
                         let path = smallThumbnail.path()
                         if let data = try? Data(contentsOf: path!) {

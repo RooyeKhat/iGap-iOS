@@ -205,7 +205,7 @@ class IGGroupInfoTableViewController: UITableViewController , UIGestureRecognize
             print("Cancelled")
         })
         
-        if myRole == .owner || myRole == .admin {
+        if self.avatars.count > 0  && (myRole == .owner || myRole == .admin) {
             optionMenu.addAction(deleteAction)
         }
         optionMenu.addAction(ChoosePhoto)
@@ -455,7 +455,7 @@ class IGGroupInfoTableViewController: UITableViewController , UIGestureRecognize
                 }
                 
                 if let attachment = currentAvatarFile {
-                    IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: {
+                    IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: { (attachment) -> Void in
                         DispatchQueue.main.async {
                             galleryPreview.hiddenDownloadView()
                             self.stopAnimating()
@@ -501,7 +501,7 @@ class IGGroupInfoTableViewController: UITableViewController , UIGestureRecognize
                 }
                 
                 if let attachment = currentAvatarFile {
-                    IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: {
+                    IGDownloadManager.sharedManager.download(file: attachment, previewType: .originalFile, completion: { (attachment) -> Void in
                         DispatchQueue.main.async {
                             self.galleryPhotos?.hiddenDownloadView()
                             self.stopAnimating()
