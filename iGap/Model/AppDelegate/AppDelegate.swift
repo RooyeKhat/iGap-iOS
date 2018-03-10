@@ -31,7 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        
 //        _ = try! Realm()
         let config = Realm.Configuration(
-            schemaVersion: 8,
+            schemaVersion: 10,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above
@@ -53,8 +53,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     //version 0.0.8 build 293
                 } else if (oldSchemaVersion < 7) { //version 0.1.0 : 7
                     //version 0.0.11
-                } else if (oldSchemaVersion < 8) { //version 0.1.0 : 7
+                } else if (oldSchemaVersion < 8) {
                     //version 0.1.5 build 449
+                } else if (oldSchemaVersion < 9) {
+                    //version 0.2.0 build 452
+                } else if (oldSchemaVersion < 10) {
+                    //version 0.2.1 build 453
                 }
         })
         Realm.Configuration.defaultConfiguration = config
@@ -73,10 +77,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         tabBarItemApperance.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.red], for: UIControlState.normal)
         tabBarItemApperance.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.white], for: UIControlState.selected)
         
-        
-        
         UserDefaults.standard.setValue(false, forKey:"_UIConstraintBasedLayoutLogUnsatisfiable")
-        
+
         return true
     }
     
@@ -120,6 +122,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             self.isNeedToSetNickname = false
         })
 
+    }
+    
+    func showCallPage(userId: Int64 , isIncommmingCall: Bool = true){
+        let storyboard : UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let callPage = storyboard.instantiateViewController(withIdentifier: "IGCallShowing") as! IGCall
+        callPage.userId = userId
+        callPage.isIncommingCall = isIncommmingCall
+        self.window?.rootViewController?.present(callPage, animated: true, completion: nil)
+    }
+    
+    func showCallQualityPage(rateId: Int64){
+        let storyboard : UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let callQualityPage = storyboard.instantiateViewController(withIdentifier: "IGCallQualityShowing") as! IGCallQuality
+        callQualityPage.rateId = rateId
+        self.window?.rootViewController?.present(callQualityPage, animated: true, completion: nil)
     }
     
     func showLoginFaieldAlert() {

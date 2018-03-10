@@ -12,18 +12,22 @@ import Foundation
 import UIKit
 import IGProtoBuff
 import SwiftProtobuf
+import RealmSwift
+import WebRTC
 
-//MARK: -
 class IGSignalingGetConfigurationRequest : IGRequest {
     class Generator : IGRequest.Generator{
-        class func generate(userEmail: String) -> IGRequestWrapper {
-            let getConfigurationRequestMessage = IGPSignalingGetConfiguration()
-            return IGRequestWrapper(message: getConfigurationRequestMessage, actionID: 900)
+        class func generate() -> IGRequestWrapper {
+            return IGRequestWrapper(message: IGPSignalingGetConfiguration(), actionID: 900)
         }
     }
 
     class Handler : IGRequest.Handler{
         class func interpret(response reponseProtoMessage:IGPSignalingGetConfigurationResponse) {
+            IGFactory.shared.setSignalingConfiguration(configuration: reponseProtoMessage)
+            for ice in reponseProtoMessage.igpIceServer {
+                IGAppManager.iceServersStatic.append(RTCIceServer(urlStrings:[ice.igpURL],username:ice.igpUsername,credential:ice.igpCredential))
+            }
         }
 
         override class func handlePush(responseProtoMessage: Message) {
@@ -34,11 +38,10 @@ class IGSignalingGetConfigurationRequest : IGRequest {
                 break
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingOfferRequest : IGRequest {
     class Generator : IGRequest.Generator{
         class func generate(calledUserId: Int64,type: IGPSignalingOffer.IGPType,callerSdp : String) -> IGRequestWrapper {
@@ -52,47 +55,49 @@ class IGSignalingOfferRequest : IGRequest {
 
     class Handler : IGRequest.Handler{
         class func interpret(response reponseProtoMessage:IGPSignalingOfferResponse) {
+            IGCall.sendLeaveRequest = true
         }
 
         override class func handlePush(responseProtoMessage: Message) {
+            IGCall.sendLeaveRequest = true
             switch responseProtoMessage {
             case let offerProtoResponse as IGPSignalingOfferResponse:
-                self.interpret(response: offerProtoResponse)
+                RTCClient.getInstance().startConnection()
+                RTCClient.getInstance().sendRinging()
+                RTCClient.getInstance().createAnswerForOfferReceived(withRemoteSDP: offerProtoResponse.igpCallerSdp)
+                
+                DispatchQueue.main.async {
+                    (UIApplication.shared.delegate as! AppDelegate).showCallPage(userId: offerProtoResponse.igpCallerUserID)
+                }
+                
+                break
             default:
                 break
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingRingingRequest : IGRequest {
     class Generator : IGRequest.Generator{
-        class func generate(userEmail: String) -> IGRequestWrapper {
-            var ringingRequestMessage = IGPSignalingRinging()
-            return IGRequestWrapper(message: ringingRequestMessage, actionID: 902)
+        class func generate() -> IGRequestWrapper {
+            return IGRequestWrapper(message: IGPSignalingRinging(), actionID: 902)
         }
     }
 
     class Handler : IGRequest.Handler{
-        class func interpret(response reponseProtoMessage:IGPSignalingRingingResponse)  {
-
-        }
+        class func interpret(response reponseProtoMessage:IGPSignalingRingingResponse)  {}
 
         override class func handlePush(responseProtoMessage: Message) {
-            switch responseProtoMessage {
-            case let ringingProtoResponse as IGPSignalingRingingResponse:
-                self.interpret(response: ringingProtoResponse)
-            default:
-                break
+            guard let delegate = RTCClient.getInstance().callStateDelegate else {
+                return
             }
+            delegate.onStateChange(state: RTCClientConnectionState.Ringing)
         }
-
     }
 }
 
-//MARK: -
 class IGSignalingAcceptRequest : IGRequest {
     class Generator : IGRequest.Generator{
         class func generate(calledSdp: String) -> IGRequestWrapper {
@@ -104,22 +109,22 @@ class IGSignalingAcceptRequest : IGRequest {
 
     class Handler : IGRequest.Handler{
         class func interpret(response reponseProtoMessage:IGPSignalingAcceptResponse)  {
-
+            IGCall.sendLeaveRequest = true
         }
 
         override class func handlePush(responseProtoMessage: Message) {
             switch responseProtoMessage {
             case let acceptProtoResponse as IGPSignalingAcceptResponse:
-                self.interpret(response: acceptProtoResponse)
+                IGCall.sendLeaveRequest = true
+                RTCClient.getInstance().handleAnswerReceived(withRemoteSDP: acceptProtoResponse.igpCalledSdp)
             default:
                 break
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingCandidateRequest : IGRequest {
     class Generator : IGRequest.Generator{
         class func generate(candidate: String,sdpMId: String,sdpMLineIndex: Int32) -> IGRequestWrapper {
@@ -132,49 +137,85 @@ class IGSignalingCandidateRequest : IGRequest {
     }
 
     class Handler : IGRequest.Handler{
-        class func interpret(response reponseProtoMessage:IGPSignalingCandidateResponse)  {
-
-        }
+        class func interpret(response reponseProtoMessage:IGPSignalingCandidateResponse)  {}
 
         override class func handlePush(responseProtoMessage: Message) {
             switch responseProtoMessage {
-            case let candidateProtoResponse as IGPSignalingCandidateResponse:
-                self.interpret(response: candidateProtoResponse)
+            case let candidateResponse as IGPSignalingCandidateResponse:
+                RTCClient.getInstance().addIceCandidate(iceCandidate: RTCIceCandidate(sdp: candidateResponse.igpPeerCandidate,sdpMLineIndex: candidateResponse.igpPeerSdpMLineIndex ,sdpMid: candidateResponse.igpPeerSdpMID))
+                break
             default:
                 break
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingLeaveRequest : IGRequest {
     class Generator : IGRequest.Generator{
-        class func generate(userEmail: String) -> IGRequestWrapper {
-            var leaveRequestMessage = IGPSignalingLeave()
-            return IGRequestWrapper(message: leaveRequestMessage, actionID: 905)
+        class func generate() -> IGRequestWrapper {
+            return IGRequestWrapper(message: IGPSignalingLeave(), actionID: 905)
         }
     }
 
     class Handler : IGRequest.Handler{
-        class func interpret(response reponseProtoMessage:IGPSignalingLeaveResponse)  {
-
-        }
-
-        override class func handlePush(responseProtoMessage: Message) {
-            switch responseProtoMessage {
-            case let leaveProtoResponse as IGPSignalingLeaveResponse:
-                self.interpret(response: leaveProtoResponse)
+        class func interpret(response responseProtoMessage:IGPSignalingLeaveResponse)  {
+            
+            guard let delegate = RTCClient.getInstance().callStateDelegate else {
+                return
+            }
+            
+            switch responseProtoMessage.igpType {
+                
+            case IGPSignalingLeaveResponse.IGPType.accepted:
+                delegate.onStateChange(state: RTCClientConnectionState.Accepted)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.disconnected:
+                delegate.onStateChange(state: RTCClientConnectionState.Disconnected)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.finished:
+                delegate.onStateChange(state: RTCClientConnectionState.Finished)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.missed:
+                delegate.onStateChange(state: RTCClientConnectionState.Missed)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.notAnswered:
+                delegate.onStateChange(state: RTCClientConnectionState.NotAnswered)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.rejected:
+                delegate.onStateChange(state: RTCClientConnectionState.Rejected)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.tooLong:
+                delegate.onStateChange(state: RTCClientConnectionState.TooLong)
+                break
+                
+            case IGPSignalingLeaveResponse.IGPType.unavailable:
+                delegate.onStateChange(state: RTCClientConnectionState.Unavailable)
+                break
+                
             default:
                 break
             }
+            
+            RTCClient.getInstance().disconnect()
         }
 
+        override class func handlePush(responseProtoMessage: Message) {
+            if let signalingResponse = responseProtoMessage as? IGPSignalingLeaveResponse {
+                self.interpret(response: signalingResponse)
+            }
+        }
     }
 }
 
-//MARK: -
+
 class IGSignalingSessionHoldRequest : IGRequest {
     class Generator : IGRequest.Generator{
         class func generate(hold: Bool) -> IGRequestWrapper {
@@ -197,37 +238,41 @@ class IGSignalingSessionHoldRequest : IGRequest {
                 break
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingGetLogRequest : IGRequest {
     class Generator : IGRequest.Generator{
-        class func generate() -> IGRequestWrapper {
-            var getLogRequestMessage = IGPSignalingGetLog()
-            return IGRequestWrapper(message: getLogRequestMessage, actionID: 907)
+        class func generate(offset: Int32, limit: Int32) -> IGRequestWrapper {
+            var signalingGetLog = IGPSignalingGetLog()
+            var pagination = IGPPagination()
+            pagination.igpLimit = limit
+            pagination.igpOffset = offset
+            signalingGetLog.igpPagination = pagination
+            return IGRequestWrapper(message: signalingGetLog, actionID: 907)
         }
     }
-
+    
     class Handler : IGRequest.Handler{
-        class func interpret(response reponseProtoMessage:IGPSignalingGetLogResponse)  {
-
+        class func interpret(response reponseProtoMessage:IGPSignalingGetLogResponse) -> Int {
+            
+            for callLog in reponseProtoMessage.igpSignalingLog {
+                IGFactory.shared.setCallLog(callLog: callLog)
+            }
+            
+            return reponseProtoMessage.igpSignalingLog.count
         }
-
+        
         override class func handlePush(responseProtoMessage: Message) {
-            switch responseProtoMessage {
-            case let getLogProtoResponse as IGPSignalingGetLogResponse:
-                self.interpret(response: getLogProtoResponse)
-            default:
-                break
+            if let callLogResponse = responseProtoMessage as? IGPSignalingGetLogResponse {
+                self.interpret(response: callLogResponse)
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingClearLogRequest : IGRequest {
     class Generator : IGRequest.Generator{
         class func generate(clearId: Int64) -> IGRequestWrapper {
@@ -239,7 +284,7 @@ class IGSignalingClearLogRequest : IGRequest {
 
     class Handler : IGRequest.Handler{
         class func interpret(response reponseProtoMessage:IGPSignalingClearLogResponse)  {
-
+            IGFactory.shared.clearCallLog()
         }
 
         override class func handlePush(responseProtoMessage: Message) {
@@ -250,11 +295,10 @@ class IGSignalingClearLogRequest : IGRequest {
                 break
             }
         }
-
     }
 }
 
-//MARK: -
+
 class IGSignalingRateRequest : IGRequest {
     class Generator : IGRequest.Generator{
         class func generate(id: Int64,rate: Int32,reason: String) -> IGRequestWrapper {
@@ -267,9 +311,7 @@ class IGSignalingRateRequest : IGRequest {
     }
 
     class Handler : IGRequest.Handler{
-        class func interpret(response reponseProtoMessage:IGPSignalingRateResponse)  {
-
-        }
+        class func interpret(response reponseProtoMessage:IGPSignalingRateResponse)  {}
 
         override class func handlePush(responseProtoMessage: Message) {
             switch responseProtoMessage {
@@ -279,6 +321,5 @@ class IGSignalingRateRequest : IGRequest {
                 break
             }
         }
-
     }
 }

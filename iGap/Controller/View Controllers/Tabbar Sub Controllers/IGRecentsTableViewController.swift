@@ -29,24 +29,27 @@ class IGRecentsTableViewController: UITableViewController {
     var connectionStatus: IGAppManager.ConnectionStatus?
     var isLoadingMoreRooms: Bool = false
     var numberOfRoomFetchedInLastRequest: Int = -1
+    static var needGetInfo: Bool = true
     
     private let disposeBag = DisposeBag()
     
     private func updateNavigationBarBasedOnNetworkStatus(_ status: IGAppManager.ConnectionStatus) {
-        let navigationItem = self.tabBarController?.navigationItem as! IGNavigationItem
-        switch status {
-        case .waitingForNetwork:
-            navigationItem.setNavigationItemForWaitingForNetwork()
-            connectionStatus = .waitingForNetwork
-            break
-        case .connecting:
-            navigationItem.setNavigationItemForConnecting()
-            connectionStatus = .connecting
-            break
-        case .connected:
-            connectionStatus = .connected
-            self.setDefaultNavigationItem()
-            break
+        
+        if let navigationItem = self.tabBarController?.navigationItem as? IGNavigationItem {
+            switch status {
+            case .waitingForNetwork:
+                navigationItem.setNavigationItemForWaitingForNetwork()
+                connectionStatus = .waitingForNetwork
+                break
+            case .connecting:
+                navigationItem.setNavigationItemForConnecting()
+                connectionStatus = .connecting
+                break
+            case .connected:
+                connectionStatus = .connected
+                self.setDefaultNavigationItem()
+                break
+            }
         }
     }
     
@@ -54,8 +57,52 @@ class IGRecentsTableViewController: UITableViewController {
         let navigationItem = self.tabBarController?.navigationItem as! IGNavigationItem
         navigationItem.setChatListsNavigationItems()
         navigationItem.rightViewContainer?.addAction {
-            
-           // self.performSegue(withIdentifier: "createANewChat", sender: self)
+
+            if IGTabBarController.currentTabStatic == .Call {
+             
+                let alertController = UIAlertController(title: "Clear Call History", message: "Are you sure you want to clear all incoming and outgoing calls?", preferredStyle: .actionSheet)
+                let clearCallLog = UIAlertAction(title: "Clear", style: .default, handler: { (action) in
+                    if let userId = IGAppManager.sharedManager.userID() {
+                        let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+                        hud.mode = .indeterminate
+                        
+                        let sortProperties = [SortDescriptor(keyPath: "offerTime", ascending: false)]
+                        guard let clearId = try! Realm().objects(IGRealmCallLog.self).sorted(by: sortProperties).first?.id else {
+                            return
+                        }
+                        
+                        IGSignalingClearLogRequest.Generator.generate(clearId: clearId).success({ (protoResponse) in
+                            DispatchQueue.main.async {
+                                if let clearLogResponse = protoResponse as? IGPSignalingClearLogResponse {
+                                    IGSignalingClearLogRequest.Handler.interpret(response: clearLogResponse)
+                                    hud.hide(animated: true)
+                                }
+                            }
+                        }).error({ (errorCode, waitTime) in
+                            DispatchQueue.main.async {
+                                switch errorCode {
+                                case .timeout:
+                                    let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                                    alert.addAction(okAction)
+                                    self.present(alert, animated: true, completion: nil)
+                                default:
+                                    break
+                                }
+                                self.hud.hide(animated: true)
+                            }
+                        }).send()
+                    }
+                })
+                
+                let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+                
+                alertController.addAction(clearCallLog)
+                alertController.addAction(cancel)
+                
+                self.present(alertController, animated: true, completion: nil)
+                return
+            }
             
             let alertController = UIAlertController(title: "New Message", message: "Which type of conversation would you like to initiate?", preferredStyle: .actionSheet)
             let myCloud = UIAlertAction(title: "My Cloud", style: .default, handler: { (action) in
@@ -89,7 +136,7 @@ class IGRecentsTableViewController: UITableViewController {
                     }).send()
                 }
             })
-            let newChat = UIAlertAction(title: "New Conversation", style: .default, handler: { (action) in
+            let newChat = UIAlertAction(title: "New (Conversation OR Call)", style: .default, handler: { (action) in
                 self.performSegue(withIdentifier: "createANewChat", sender: self)
             })
             let newGroup = UIAlertAction(title: "New Group", style: .default, handler: { (action) in
@@ -142,14 +189,16 @@ class IGRecentsTableViewController: UITableViewController {
             
         }, onDisposed: {
             
-        }).addDisposableTo(disposeBag)
+        }).disposed(by: disposeBag)
         
         self.addRoomChangeNotificationBlock()
         
         if IGAppManager.sharedManager.isUserLoggiedIn() {
-            self.fetchRoomList()
-            self.saveAndSendContacts()
-            self.requestToGetUserPrivacy()
+            if IGRecentsTableViewController.needGetInfo {
+                self.fetchRoomList()
+                self.saveAndSendContacts()
+                self.requestToGetUserPrivacy()
+            }
         } else {
             NotificationCenter.default.addObserver(self,
                                                    selector: #selector(self.userDidLogin),
@@ -195,8 +244,8 @@ class IGRecentsTableViewController: UITableViewController {
     }
     
     private func addRoomChangeNotificationBlock() {
-        self.notificationToken?.stop()
-        self.notificationToken = rooms!.addNotificationBlock { (changes: RealmCollectionChange) in
+        self.notificationToken?.invalidate()
+        self.notificationToken = rooms!.observe { (changes: RealmCollectionChange) in
             switch changes {
             case .initial:
                 self.tableView.reloadData()
@@ -233,15 +282,16 @@ class IGRecentsTableViewController: UITableViewController {
         isLoadingMoreRooms = true
         IGClientGetRoomListRequest.Generator.generate(offset: 0, limit: 40).success { (responseProtoMessage) in
             self.isLoadingMoreRooms = false
-                DispatchQueue.main.async {
-                    switch responseProtoMessage {
-                    case let response as IGPClientGetRoomListResponse:
-                        self.sendClientCondition(clientCondition: clientCondition)
-                        self.numberOfRoomFetchedInLastRequest = IGClientGetRoomListRequest.Handler.interpret(response: response)
-                    default:
-                        break;
-                    }
+            DispatchQueue.main.async {
+                AVAudioSession.sharedInstance().requestRecordPermission { (granted) in }
+                switch responseProtoMessage {
+                case let response as IGPClientGetRoomListResponse:
+                    self.sendClientCondition(clientCondition: clientCondition)
+                    self.numberOfRoomFetchedInLastRequest = IGClientGetRoomListRequest.Handler.interpret(response: response)
+                default:
+                    break;
                 }
+            }
             }.error({ (errorCode, waitTime) in
                 
             }).send()

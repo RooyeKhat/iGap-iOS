@@ -1541,7 +1541,94 @@ class IGFactory: NSObject {
         self.performNextFactoryTaskIfPossible()
     }
     
-
+    func setSignalingConfiguration(configuration: IGPSignalingGetConfigurationResponse) {
+        let task = IGFactoryTask()
+        
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                
+                try! IGDatabaseManager.shared.realm.write {
+                    if let signaling = IGDatabaseManager.shared.realm.objects(IGSignaling.self).first {
+                        signaling.voiceCalling = configuration.igpVoiceCalling
+                        signaling.videoCalling = configuration.igpVideoCalling
+                        signaling.secretChat = configuration.igpSecretChat
+                        signaling.screenSharing = configuration.igpScreenSharing
+                        
+                        for iceServer in configuration.igpIceServer {
+                            signaling.iceServer.append(IGIceServer(iceServer: iceServer))
+                        }
+                    } else {
+                         IGDatabaseManager.shared.realm.add(IGSignaling(signalingConfiguration: configuration))
+                    }
+                }
+                
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
+    
+    func setCallLog(callLog: IGPSignalingGetLogResponse.IGPSignalingLog) {
+        let task = IGFactoryTask()
+        
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                
+                try! IGDatabaseManager.shared.realm.write {
+                    
+                    let predicate = NSPredicate(format: "id = %lld", callLog.igpID)
+                    if let _ = IGDatabaseManager.shared.realm.objects(IGRealmCallLog.self).filter(predicate).first {
+                        IGDatabaseManager.shared.realm.add(IGRealmCallLog(signalingLog: callLog), update: true)
+                    } else {
+                        IGDatabaseManager.shared.realm.add(IGRealmCallLog(signalingLog: callLog))
+                    }
+                }
+                
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
+    
+    func clearCallLog() {
+        let task = IGFactoryTask()
+        
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                
+                try! IGDatabaseManager.shared.realm.write {
+                    let callLogs = try! Realm().objects(IGRealmCallLog.self)
+                    if !callLogs.isEmpty {
+                        IGDatabaseManager.shared.realm.delete(callLogs)
+                    }
+                }
+                
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
     
     //MARK: --------------------------------------------------------
     //MARK: ▶︎▶︎ Rooms
