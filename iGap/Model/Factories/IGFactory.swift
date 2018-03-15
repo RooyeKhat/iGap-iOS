@@ -194,7 +194,7 @@ fileprivate class IGFactoryTask: NSObject {
                 IGDatabaseManager.shared.perfrmOnDatabaseThread {
                     let predicate = NSPredicate(format: "id = %lld", id)
                     if let roomInDb = try! Realm().objects(IGRoom.self).filter(predicate).first {
-                        if roomInDb.isParticipant != isParticipane {
+                        if roomInDb.isParticipant != isParticipane { // if roomInDb.isParticipant == true {
                             try! IGDatabaseManager.shared.realm.write {
                                 roomInDb.isParticipant = isParticipane
                             }
@@ -321,6 +321,44 @@ class IGFactory: NSObject {
         }
     }
     
+    //MARK: ▶︎▶︎ Client Search Username
+    func saveSearchUsernameResult(_ searchUsernameResult: [IGPClientSearchUsernameResponse.IGPResult] ) {
+        let task = IGFactoryTask()
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                try! IGDatabaseManager.shared.realm.write {
+                    for searchUsername in searchUsernameResult {
+
+                        var predicate: NSPredicate!
+
+                        if searchUsername.igpType.rawValue == IGPClientSearchUsernameResponse.IGPResult.IGPType.room.rawValue {
+                            predicate = NSPredicate(format: "room.id = %lld", searchUsername.igpRoom.igpID)
+                        } else {
+                            predicate = NSPredicate(format: "user.id = %lld", searchUsername.igpUser.igpID)
+                        }
+
+                        if let searchResult = IGDatabaseManager.shared.realm.objects(IGRealmClientSearchUsername.self).filter(predicate).first {
+                            searchResult.room = searchResult.setRoom(room: searchUsername.igpRoom)
+                            searchResult.user = searchResult.setUser(user: searchUsername.igpUser)
+                            searchResult.type = searchUsername.igpType.rawValue
+                        } else {
+                            IGDatabaseManager.shared.realm.add(IGRealmClientSearchUsername(searchUsernameResult: searchUsername))
+                        }
+                        
+                    }
+                }
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
 
     
     //MARK: --------------------------------------------------------
@@ -2023,6 +2061,32 @@ class IGFactory: NSObject {
         }.error {
             self.removeTaskFromQueueAndPerformNext(task)
         }.addToQueue() //.addAsHighPriorityToQueue()
+        self.performNextFactoryTaskIfPossible()
+    }
+    
+    func updateRoomParticipant(roomId: Int64, isParticipant: Bool){
+        let task = IGFactoryTask()
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                let predicate = NSPredicate(format: "id = %lld", roomId)
+                if let room = IGDatabaseManager.shared.realm.objects(IGRoom.self).filter(predicate).first {
+                    try! IGDatabaseManager.shared.realm.write {
+                        room.isParticipant = isParticipant
+                    }
+                }
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+                
+            }.addToQueue()
+        
         self.performNextFactoryTaskIfPossible()
     }
     

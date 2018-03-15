@@ -210,14 +210,9 @@ class IGClinetCheckInviteLinkRequest: IGRequest {
         }
     }
     class Handler: IGRequest.Handler {
-        class func interpret( response responseProtoMessage : IGPClientCheckInviteLinkResponse) -> IGRoom {
-            let igpRoom = responseProtoMessage.igpRoom
-            let room = IGRoom(igpRoom: igpRoom)
-            return room
-        }
+        class func interpret( response responseProtoMessage : IGPClientCheckInviteLinkResponse) {}
         override class func handlePush(responseProtoMessage: Message) {}
     }
-    
 }
     
 
@@ -231,9 +226,7 @@ class IGClientJoinByInviteLinkRequest: IGRequest {
         }
     }
     class Handler: IGRequest.Handler {
-        class func interpret( response responseProtoMessage : IGPClientJoinByInviteLinkResponse) {
-            
-        }
+        class func interpret( response responseProtoMessage : IGPClientJoinByInviteLinkResponse) {}
         override class func handlePush(responseProtoMessage: Message) {}
     }
 }
@@ -250,6 +243,59 @@ class IGClientJoinByUsernameRequest: IGRequest {
         class func interpret( response responseProtoMessage : IGPClientJoinByUsernameResponse) {
         }
          override class func handlePush(responseProtoMessage: Message) {}
+    }
+}
+
+class IGClientSubscribeToRoomRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate(roomId: Int64) -> IGRequestWrapper {
+            var clientCountRoomHistoryRequestMessage = IGPClientSubscribeToRoom()
+            clientCountRoomHistoryRequestMessage.igpRoomID = roomId
+            return IGRequestWrapper(message: clientCountRoomHistoryRequestMessage, actionID: 610)
+            
+        }
+    }
+    class Handler: IGRequest.Handler {
+        class func interpret( response responseProtoMessage : IGPClientSubscribeToRoomResponse) {
+            
+        }
+        
+        override class func handlePush(responseProtoMessage: Message) {}
+    }
+}
+
+class IGClientUnsubscribeFromRoomRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate(roomId: Int64) -> IGRequestWrapper {
+            var clientCountRoomHistoryRequestMessage = IGPClientUnsubscribeFromRoom()
+            clientCountRoomHistoryRequestMessage.igpRoomID = roomId
+            return IGRequestWrapper(message: clientCountRoomHistoryRequestMessage, actionID: 611)
+            
+        }
+    }
+    class Handler: IGRequest.Handler {
+        class func interpret( response responseProtoMessage : IGPClientUnsubscribeFromRoomResponse) {
+            
+        }
+        
+        override class func handlePush(responseProtoMessage: Message) {}
+    }
+}
+
+class IGClientSearchUsernameRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate(query: String) -> IGRequestWrapper {
+            var clientSearchUsername = IGPClientSearchUsername()
+            clientSearchUsername.igpQuery = query
+            return IGRequestWrapper(message: clientSearchUsername, actionID: 612)
+        }
+    }
+    class Handler: IGRequest.Handler {
+        class func interpret( response responseProtoMessage : IGPClientSearchUsernameResponse) {
+            IGFactory.shared.saveSearchUsernameResult(responseProtoMessage.igpResult)
+        }
+        
+        override class func handlePush(responseProtoMessage: Message) {}
     }
 }
 
