@@ -43,6 +43,24 @@ class IGGlobal {
         }
         return randomString
     }
+    
+    /* if device is iPad return "alert" style otherwise will be returned "actionSheet" style */
+    public class func detectAlertStyle() -> UIAlertControllerStyle{
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return .actionSheet
+        }
+        return .alert
+    }
+}
+
+extension UIViewController {
+    class var storyboardID : String {
+        return "\(self)"
+    }
+    
+    static func instantiateFromAppStroryboard(appStoryboard: AppStoryboard) -> Self {
+        return appStoryboard.viewController(viewControllerClass: self)
+    }
 }
 
 //MARK: -
@@ -79,6 +97,10 @@ extension UIColor {
     }
     
     class func callRatingView() -> UIColor {
+        return UIColor(red: 44.0/255.0, green: 170/255.0, blue: 163.0/255.0, alpha: 1.0)
+    }
+    
+    class func iGapColor() -> UIColor {
         return UIColor(red: 44.0/255.0, green: 170/255.0, blue: 163.0/255.0, alpha: 1.0)
     }
     
@@ -559,4 +581,28 @@ extension UIFont {
 //        let descriptor = self.fontDescriptor.withSymbolicTraits(UIFontDescriptorSymbolicTraits(traits))!
 //        return UIFont(descriptor: descriptor, size: 0)
 //    }
+}
+
+extension String {
+    func height(withConstrainedWidth width: CGFloat, font: UIFont) -> CGFloat {
+        let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: font], context: nil)
+        
+        return ceil(boundingBox.height)
+    }
+    
+    func width(withConstrainedHeight height: CGFloat, font: UIFont) -> CGFloat {
+        let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
+        let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: font], context: nil)
+        
+        return ceil(boundingBox.width)
+    }
+}
+
+extension Array where Element: Hashable {
+    func difference(from other: [Element]) -> [Element] {
+        let thisSet = Set(self)
+        let otherSet = Set(other)
+        return Array(thisSet.symmetricDifference(otherSet))
+    }
 }

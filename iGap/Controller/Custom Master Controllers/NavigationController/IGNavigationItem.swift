@@ -108,29 +108,28 @@ class IGNavigationItem: UINavigationItem {
         self.centerViewContainer?.removeFromSuperview()
         self.centerViewContainer = IGTappableView(frame: CGRect(x: 0, y: 0, width: 200, height: 45))
         
+        self.titleView = centerViewContainer
+        
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 17.0, weight: UIFontWeightSemibold)
         label.textAlignment = .center
         label.textColor = UIColor.white
         label.text = text
-        centerViewContainer?.addSubview(label)
+        self.titleView?.addSubview(label)
         label.snp.makeConstraints { (make) in
-            make.centerX.equalTo(self.centerViewContainer!.snp.centerX).offset(14)
-            make.centerY.equalTo(self.centerViewContainer!.snp.centerY).offset(-5)
+            make.centerX.equalTo(self.centerViewContainer!.snp.centerX)
+            make.centerY.equalTo(self.centerViewContainer!.snp.centerY)
         }
         
         let activityIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: .white)
-        centerViewContainer?.addSubview(activityIndicatorView)
+        self.titleView?.addSubview(activityIndicatorView)
         activityIndicatorView.startAnimating()
         activityIndicatorView.snp.makeConstraints { (make) in
             make.right.equalTo(label.snp.left).offset(-4)
-            make.centerY.equalTo(self.centerViewContainer!.snp.centerY).offset(-5)
+            make.centerY.equalTo(self.centerViewContainer!.snp.centerY)
             make.width.equalTo(20.0)
             make.height.equalTo(20.0)
         }
-        
-        self.titleView = centerViewContainer
-        
     }
     
     
@@ -208,8 +207,8 @@ class IGNavigationItem: UINavigationItem {
         self.titleView = titleView
     }
     
-    public func addModalViewRightItem(title: String, iGapFont: Bool = false) {
-        let rightViewFrame = CGRect(x:0, y:0, width: 50, height:40)
+    public func addModalViewRightItem(title: String, iGapFont: Bool = false, fontSize: CGFloat = 20.0, xPosition: Double = -5.0) {
+        let rightViewFrame = CGRect(x:0, y:0, width: 60, height:40)
         rightViewContainer = IGTappableView(frame: rightViewFrame)
         rightViewContainer!.backgroundColor = UIColor.clear
         let rightBarButton = UIBarButtonItem(customView: rightViewContainer!)
@@ -218,11 +217,11 @@ class IGNavigationItem: UINavigationItem {
         var labelFrame: CGRect!
         var label: UILabel!
         if iGapFont {
-            labelFrame = CGRect(x: -5.0, y: 0, width: 50, height:40)
+            labelFrame = CGRect(x: xPosition, y: 0, width: 50, height:40)
             label = UILabel(frame: labelFrame)
-            label.font = UIFont.iGapFontico(ofSize: 20.0)
+            label.font = UIFont.iGapFontico(ofSize: fontSize)
         } else {
-            labelFrame = CGRect(x: -40, y: 0, width: 100, height:40)
+            labelFrame = CGRect(x: -50, y: 0, width: 100, height:40)
             label = UILabel(frame: labelFrame)
         }
         label.textAlignment = .right
@@ -238,7 +237,7 @@ class IGNavigationItem: UINavigationItem {
         let leftBarButton = UIBarButtonItem(customView: leftViewContainer!)
         self.leftBarButtonItem = leftBarButton
         
-        let labelFrame = CGRect(x: -10, y: 4.5, width: 100, height:31)
+        let labelFrame = CGRect(x: 0, y: 4.5, width: 100, height:31)
         let label = UILabel(frame: labelFrame)
         label.text = title
         label.textColor = UIColor.white

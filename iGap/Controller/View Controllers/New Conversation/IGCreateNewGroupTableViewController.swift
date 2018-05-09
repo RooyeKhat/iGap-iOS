@@ -84,7 +84,7 @@ class IGCreateNewGroupTableViewController: UITableViewController , UIGestureReco
         // Dispose of any resources that can be recreated.
     }
     func choosePhotoActionSheet(sender : UIImageView){
-        let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: IGGlobal.detectAlertStyle())
         let cameraOption = UIAlertAction(title: "Take a Photo", style: .default, handler: {
             (alert: UIAlertAction!) -> Void in
             print("Take a Photo")
@@ -202,6 +202,7 @@ class IGCreateNewGroupTableViewController: UITableViewController , UIGestureReco
     }
     
     func requestToCreateGroup() {
+        
         if let roomName = self.groupNameTextField.text {
             if roomName != "" {
                 
@@ -255,12 +256,7 @@ class IGCreateNewGroupTableViewController: UITableViewController , UIGestureReco
                                                             case let groupAvatarAddResponse as IGPGroupAvatarAddResponse:
                                                                 IGGroupAvatarAddRequest.Handler.interpret(response: groupAvatarAddResponse)
                                                                 self.hideProgress()
-                                                                self.dismiss(animated: true, completion: {
-                                                                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: kIGNotificationNameDidCreateARoom),
-                                                                                                    object: nil,
-                                                                                                    userInfo: ["room": getRoomProtoResponse.igpRoom.igpID])
-                                                                })
-                                                                
+                                                                self.dismissView(roomId: getRoomProtoResponse.igpRoom.igpID)
                                                             default:
                                                                 break
                                                             }
@@ -274,11 +270,7 @@ class IGCreateNewGroupTableViewController: UITableViewController , UIGestureReco
                                             })
                                         } else {
                                             self.hideProgress()
-                                            self.dismiss(animated: true, completion: {
-                                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kIGNotificationNameDidCreateARoom),
-                                                                                object: nil,
-                                                                                userInfo: ["room": getRoomProtoResponse.igpRoom.igpID])
-                                            })
+                                            self.dismissView(roomId: getRoomProtoResponse.igpRoom.igpID)
                                         }
 
                                     default:
@@ -306,6 +298,15 @@ class IGCreateNewGroupTableViewController: UITableViewController , UIGestureReco
         }
     }
     
+    func dismissView(roomId: Int64){
+        self.navigationController?.popToRootViewController(animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kIGNotificationNameDidCreateARoom),
+                                            object: nil,
+                                            userInfo: ["room": roomId])
+        }
+    }
+    
     func requestToConvertChatToGroup() {
         if let roomName = self.groupNameTextField.text {
             if roomName != "" {
@@ -314,21 +315,35 @@ class IGCreateNewGroupTableViewController: UITableViewController , UIGestureReco
                     DispatchQueue.main.async {
                         switch protoResponse {
                         case let chatConvertToGroupResponse as IGPChatConvertToGroupResponse:
-                            let convertChatToGroupResponse =  IGChatConvertToGroupRequest.Handler.interpret(response: chatConvertToGroupResponse)
-                             let newRoomId = convertChatToGroupResponse.roomId
-                            print(self.roomId)
-                            print(newRoomId)
-                            if self.navigationController is IGNavigationController {
-                                //TODO: Whta the heck is these two l    ines?
-                                self.navigationController?.popViewController(animated: true)
-                                self.navigationController?.popToRootViewController(animated: true)
-                            }
-
-//                             self.dismiss(animated: true, completion: {
-//                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kIGNotificationNameDidCreateARoom),
-//                                                                object: nil,
-//                                                                userInfo: ["room": newRoomId])
-//                             })
+                            
+                            IGClientGetRoomRequest.Generator.generate(roomId: self.roomId!).success({ (protoResponse) in
+                                DispatchQueue.main.async {
+                                    switch protoResponse {
+                                    case let clientGetRoomResponse as IGPClientGetRoomResponse:
+                                        IGChatConvertToGroupRequest.Handler.interpret(response: chatConvertToGroupResponse)
+                                        IGClientGetRoomRequest.Handler.interpret(response: clientGetRoomResponse)
+                                        if self.navigationController is IGNavigationController {
+                                            self.navigationController?.popToRootViewController(animated: true)
+                                        }
+                                    default:
+                                        break
+                                    }
+                                }
+                            }).error ({ (errorCode, waitTime) in
+                                switch errorCode {
+                                case .timeout:
+                                    DispatchQueue.main.async {
+                                        let alert = UIAlertController(title: "Timeout", message: "Please try again later", preferredStyle: .alert)
+                                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                                        alert.addAction(okAction)
+                                        self.hud.hide(animated: true)
+                                        self.present(alert, animated: true, completion: nil)
+                                    }
+                                default:
+                                    break
+                                }
+                                
+                            }).send()
                         default:
                             break
                         }

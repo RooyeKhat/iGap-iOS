@@ -172,22 +172,32 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
         navigationItem.rightViewContainer?.addAction {
             if self.room?.type == .chat {
                 self.selectedUserToSeeTheirInfo = (self.room?.chatRoom?.peer)!
-                self.performSegue(withIdentifier: "showUserInfo", sender: self)
+                self.openUserProfile()
             }
             if self.room?.type == .channel {
                 self.selectedChannelToSeeTheirInfo = self.room?.channelRoom
-                self.performSegue(withIdentifier: "showChannelinfo", sender: self)
+                //self.performSegue(withIdentifier: "showChannelinfo", sender: self)
+                
+                let profile = IGChannelInfoTableViewController.instantiateFromAppStroryboard(appStoryboard: .Profile)
+                profile.selectedChannel = self.selectedChannelToSeeTheirInfo
+                profile.room = self.room
+                self.navigationController!.pushViewController(profile, animated: true)
             }
             if self.room?.type == .group {
                 self.selectedGroupToSeeTheirInfo = self.room?.groupRoom
-                self.performSegue(withIdentifier: "showGroupInfo", sender: self)
+                //self.performSegue(withIdentifier: "showGroupInfo", sender: self)
+                
+                let profile = IGGroupInfoTableViewController.instantiateFromAppStroryboard(appStoryboard: .Profile)
+                profile.selectedGroup = self.selectedGroupToSeeTheirInfo
+                profile.room = self.room
+                self.navigationController!.pushViewController(profile, animated: true)
             }
             
         }
         navigationItem.centerViewContainer?.addAction {
             if self.room?.type == .chat {
                 self.selectedUserToSeeTheirInfo = (self.room?.chatRoom?.peer)!
-                self.performSegue(withIdentifier: "showUserInfo", sender: self)
+                self.openUserProfile()
             } else {
                 
             }
@@ -314,6 +324,14 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
         if messages.count == 0 {
             fetchRoomHistoryWhenDbIsClear()
         }
+    }
+    
+    func openUserProfile(){
+        let profile = IGRegistredUserInfoTableViewController.instantiateFromAppStroryboard(appStoryboard: .Profile)
+        profile.user = self.selectedUserToSeeTheirInfo
+        profile.previousRoomId = self.room?.id
+        profile.room = self.room
+        self.navigationController!.pushViewController(profile, animated: true)
     }
     
     func updateObserver(){
@@ -769,102 +787,106 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
             let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
             alert.addAction(okAction)
             self.present(alert, animated: true, completion: nil)
-        }else {
-        if selectedMessageToEdit != nil {
-                        switch room!.type {
-            case .chat:
-                IGChatEditMessageRequest.Generator.generate(message: selectedMessageToEdit!, newText: inputTextView.text,  room: room!).success({ (protoResponse) in
-                    IGChatEditMessageRequest.Handler.interpret(response: protoResponse)
-                }).error({ (errorCode, waitTime) in
-                    
-                }).send()
-            case .group:
-                IGGroupEditMessageRequest.Generator.generate(message: selectedMessageToEdit!, newText: inputTextView.text, room: room!).success({ (protoResponse) in
-                    switch protoResponse {
-                    case let response as IGPGroupEditMessageResponse:
-                        IGGroupEditMessageRequest.Handler.interpret(response: response)
-                    default:
-                        break
-                    }
-                }).error({ (errorCode, waitTime) in
-                    
-                }).send()
-            case .channel:
-                IGChannelEditMessageRequest.Generator.generate(message: selectedMessageToEdit!, newText: inputTextView.text, room: room!).success({ (protoResponse) in
-                    switch protoResponse {
-                    case let response as IGPChannelEditMessageResponse:
-                        IGChannelEditMessageRequest.Handler.interpret(response: response)
-                    default:
-                        break
-                    }
-                }).error({ (errorCode, waitTime) in
-                    
-                }).send()
+        } else {
+            if selectedMessageToEdit != nil {
+                switch room!.type {
+                case .chat:
+                    IGChatEditMessageRequest.Generator.generate(message: selectedMessageToEdit!, newText: inputTextView.text,  room: room!).success({ (protoResponse) in
+                        IGChatEditMessageRequest.Handler.interpret(response: protoResponse)
+                    }).error({ (errorCode, waitTime) in
+                        
+                    }).send()
+                case .group:
+                    IGGroupEditMessageRequest.Generator.generate(message: selectedMessageToEdit!, newText: inputTextView.text, room: room!).success({ (protoResponse) in
+                        switch protoResponse {
+                        case let response as IGPGroupEditMessageResponse:
+                            IGGroupEditMessageRequest.Handler.interpret(response: response)
+                        default:
+                            break
+                        }
+                    }).error({ (errorCode, waitTime) in
+                        
+                    }).send()
+                case .channel:
+                    IGChannelEditMessageRequest.Generator.generate(message: selectedMessageToEdit!, newText: inputTextView.text, room: room!).success({ (protoResponse) in
+                        switch protoResponse {
+                        case let response as IGPChannelEditMessageResponse:
+                            IGChannelEditMessageRequest.Handler.interpret(response: response)
+                        default:
+                            break
+                        }
+                    }).error({ (errorCode, waitTime) in
+                        
+                    }).send()
+                }
+                
+                selectedMessageToEdit = nil
+                self.inputTextView.text = ""
+                self.setInputBarHeight()
+                self.sendCancelTyping()
+                return
             }
             
-            selectedMessageToEdit = nil
-            self.inputTextView.text = ""
-            self.setInputBarHeight()
-            self.sendCancelTyping()
-            return
-        }
-        
-        let message = IGRoomMessage(body: inputTextView.text)
-        
-        if currentAttachment != nil {
-            currentAttachment?.status = .processingForUpload
-            message.attachment = currentAttachment?.detach()
-            IGAttachmentManager.sharedManager.add(attachment: currentAttachment!)
-            switch currentAttachment!.type {
-            case .image:
-                if inputTextView.text == "" {
-                    message.type = .image
-                } else {
-                    message.type = .imageAndText
+            let message = IGRoomMessage(body: inputTextView.text)
+            
+            if currentAttachment != nil {
+                currentAttachment?.status = .processingForUpload
+                message.attachment = currentAttachment?.detach()
+                IGAttachmentManager.sharedManager.add(attachment: currentAttachment!)
+                switch currentAttachment!.type {
+                case .image:
+                    if inputTextView.text == "" {
+                        message.type = .image
+                    } else {
+                        message.type = .imageAndText
+                    }
+                case .video:
+                    if inputTextView.text == "" {
+                        message.type = .video
+                    } else {
+                        message.type = .videoAndText
+                    }
+                case .audio:
+                    if inputTextView.text == "" {
+                        message.type = .audio
+                    } else {
+                        message.type = .audioAndText
+                    }
+                case .voice:
+                    message.type = .voice
+                case .file:
+                    if inputTextView.text == "" {
+                        message.type = .file
+                    } else {
+                        message.type = .fileAndText
+                    }
+                default:
+                    break
                 }
-            case .video:
-                if inputTextView.text == "" {
-                    message.type = .video
-                } else {
-                    message.type = .videoAndText
+            } else {
+                if (selectedMessageToReply == nil && selectedMessageToForwardToThisRoom == nil && self.inputTextView.text.isEmpty) {
+                    self.inputTextView.text = ""
+                    return
                 }
-            case .audio:
-                if inputTextView.text == "" {
-                    message.type = .audio
-                } else {
-                    message.type = .audioAndText
-                }
-            case .voice:
-                message.type = .voice
-            case .file:
-                if inputTextView.text == "" {
-                    message.type = .file
-                } else {
-                    message.type = .fileAndText
-                }
-            default:
-                break
+                message.type = .text
             }
-        } else {
-            message.type = .text
-        }
-        message.repliedTo = selectedMessageToReply
-        message.forwardedFrom = selectedMessageToForwardToThisRoom
-
-        message.roomId = self.room!.id
-        
-        let detachedMessage = message.detach()
-        
-        IGFactory.shared.saveNewlyWriitenMessageToDatabase(detachedMessage)
-        IGMessageSender.defaultSender.send(message: message, to: room!)
-        
-        self.inputBarSendButton.isHidden = true
-        self.inputBarRecordButton.isHidden = false
-        self.inputTextView.text = ""
-        self.selectedMessageToForwardToThisRoom = nil
-        self.selectedMessageToReply = nil
-        self.currentAttachment = nil
-        self.setInputBarHeight()
+            message.repliedTo = selectedMessageToReply
+            message.forwardedFrom = selectedMessageToForwardToThisRoom
+            
+            message.roomId = self.room!.id
+            
+            let detachedMessage = message.detach()
+            
+            IGFactory.shared.saveNewlyWriitenMessageToDatabase(detachedMessage)
+            IGMessageSender.defaultSender.send(message: message, to: room!)
+            
+            self.inputBarSendButton.isHidden = true
+            self.inputBarRecordButton.isHidden = false
+            self.inputTextView.text = ""
+            self.selectedMessageToForwardToThisRoom = nil
+            self.selectedMessageToReply = nil
+            self.currentAttachment = nil
+            self.setInputBarHeight()
         }
     }
     
@@ -1377,7 +1399,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
         let roomId = room.id
         let messageId = message.id
         
-        let alertC = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+        let alertC = UIAlertController(title: title, message: nil, preferredStyle: IGGlobal.detectAlertStyle())
         let abuse = UIAlertAction(title: "Abuse", style: .default, handler: { (action) in
             self.reportRoom(roomId: roomId, messageId: messageId, reason: IGPClientRoomReport.IGPReason.abuse)
         })
@@ -1476,20 +1498,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
     
     //MARK: Segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showUserInfo" {
-            let destinationVC = segue.destination as! IGRegistredUserInfoTableViewController
-            destinationVC.user = self.selectedUserToSeeTheirInfo
-            destinationVC.previousRoomId = room?.id
-            destinationVC.room = room
-        } else if segue.identifier == "showChannelinfo" {
-            let destinationVC = segue.destination as! IGChannelInfoTableViewController
-            destinationVC.selectedChannel = selectedChannelToSeeTheirInfo
-            destinationVC.room = room
-        } else if segue.identifier == "showGroupInfo" {
-            let destinationTv = segue.destination as! IGGroupInfoTableViewController
-            destinationTv.selectedGroup = selectedGroupToSeeTheirInfo
-            destinationTv.room = room
-        } else if segue.identifier == "showForwardMessageTable" {
+        if segue.identifier == "showForwardMessageTable" {
             let navigationController = segue.destination as! IGNavigationController
             let destinationTv = navigationController.topViewController as! IGForwardMessageTableViewController
             destinationTv.delegate = self
@@ -2036,7 +2045,7 @@ extension IGMessageViewController: AVAudioRecorderDelegate {
 extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
     func didTapAndHoldOnMessage(cellMessage: IGRoomMessage, cell: IGMessageGeneralCollectionViewCell) {
         print(#function)
-        let alertC = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let alertC = UIAlertController(title: nil, message: nil, preferredStyle: IGGlobal.detectAlertStyle())
         let copy = UIAlertAction(title: "Copy", style: .default, handler: { (action) in
             self.copyMessage(cellMessage)
         })
@@ -2218,7 +2227,7 @@ extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
     func didTapOnSenderAvatar(cellMessage: IGRoomMessage, cell: IGMessageGeneralCollectionViewCell) {
         if let sender = cellMessage.authorUser {
             self.selectedUserToSeeTheirInfo = sender
-            self.performSegue(withIdentifier: "showUserInfo", sender: self)
+            openUserProfile()
         }
     }
     
@@ -2239,7 +2248,7 @@ extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
                     switch clientResponse.clientResolveUsernametype {
                     case .user:
                         self.selectedUserToSeeTheirInfo = clientResponse.user
-                        self.performSegue(withIdentifier: "showUserInfo", sender: self)
+                        self.openUserProfile()
                     case .room:
                         let storyBoard = UIStoryboard(name: "Main", bundle: nil)
                         let messagesVc = storyBoard.instantiateViewController(withIdentifier: "messageViewController") as! IGMessageViewController

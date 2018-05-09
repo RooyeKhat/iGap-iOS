@@ -36,7 +36,7 @@ class IGCreateNewChannelTableViewController: UITableViewController {
         let navigationItem = self.navigationItem as! IGNavigationItem
         navigationItem.addModalViewItems(leftItemText: "Cancel", rightItemText: "Next", title: "New Channel")
         navigationItem.leftViewContainer?.addAction {
-            self.dismiss(animated: true, completion: nil)
+            self.navigationController?.popToRootViewController(animated: true)
         }
         navigationItem.rightViewContainer?.addAction {
             if self.channelnameTextField.text?.isEmpty == true {
@@ -158,7 +158,7 @@ class IGCreateNewChannelTableViewController: UITableViewController {
 
 
     func choosePhotoActionSheet(sender : UIImageView){
-        let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: IGGlobal.detectAlertStyle())
         let cameraOption = UIAlertAction(title: "Take a Photo", style: .default, handler: {
             (alert: UIAlertAction!) -> Void in
             print("Take a Photo")
