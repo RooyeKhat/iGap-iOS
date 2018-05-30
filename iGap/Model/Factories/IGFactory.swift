@@ -331,6 +331,11 @@ class IGFactory: NSObject {
     //MARK: --------------------------------------------------------
     //MARK: ▶︎▶︎ Messages
     func saveIgpMessagesToDatabase(_ igpMessages: [IGPRoomMessage], for roomId: Int64, updateLastMessage: Bool, isFromSharedMedia: Bool?, isFromSendMessage: Bool=false) {
+        
+        if IGRecentsTableViewController.messageReceiveDelegat != nil {
+            IGRecentsTableViewController.messageReceiveDelegat.onMessageRecieve(messages: igpMessages)
+        }
+        
         var userIDs = [Int64: String]()
         var roomIDs = Set<Int64>()
         
@@ -747,7 +752,6 @@ class IGFactory: NSObject {
         let task = IGFactoryTask()
         task.task = {
             IGDatabaseManager.shared.perfrmOnDatabaseThread {
-                print("    ======> setting needs to fetch before message")
                 let predicate = NSPredicate(format: "id = %lld AND roomId = %lld", messageId, roomId)
                 if let messageInDb = IGDatabaseManager.shared.realm.objects(IGRoomMessage.self).filter(predicate).first {
                     try! IGDatabaseManager.shared.realm.write {
@@ -2449,6 +2453,43 @@ class IGFactory: NSObject {
                     task.success!()
                 }
                 
+            }
+        }
+        task.success {
+            self.removeTaskFromQueueAndPerformNext(task)
+            }.error {
+                self.removeTaskFromQueueAndPerformNext(task)
+            }.addToQueue()
+        self.performNextFactoryTaskIfPossible()
+        
+    }
+    
+    func roomPinMessage(roomId: Int64, messageId: Int64 = 0) {
+        let task = IGFactoryTask()
+        task.task = {
+            IGDatabaseManager.shared.perfrmOnDatabaseThread {
+                let roomPredicate = NSPredicate(format: "id = %lld", roomId)
+                if let roomInDb = try! Realm().objects(IGRoom.self).filter(roomPredicate).first {
+                    
+                    var pinMessage : IGRoomMessage? = nil
+                
+                    if messageId != 0 {
+                        let messagePredicate = NSPredicate(format: "id = %lld", messageId)
+                        pinMessage = try! Realm().objects(IGRoomMessage.self).filter(messagePredicate).first
+                    }
+                    
+                    try! IGDatabaseManager.shared.realm.write {
+                        roomInDb.pinMessage = pinMessage
+                        if messageId == 0 {
+                            if pinMessage != nil {
+                                roomInDb.deletedPinMessageId = (pinMessage?.id)!
+                            }
+                        }
+                    }
+                }
+                IGFactory.shared.performInFactoryQueue {
+                    task.success!()
+                }
             }
         }
         task.success {

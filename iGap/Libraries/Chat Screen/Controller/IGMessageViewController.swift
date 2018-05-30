@@ -51,6 +51,8 @@ class IGHeader: UICollectionReusableView {
 
 class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIGestureRecognizerDelegate {
 
+    @IBOutlet weak var pinnedMessageView: UIView!
+    @IBOutlet weak var txtPinnedMessage: UILabel!
     @IBOutlet weak var collectionView: IGMessageCollectionView!
     @IBOutlet weak var inputBarContainerView: UIView!
     @IBOutlet weak var joinButton: UIButton!
@@ -83,7 +85,6 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
     @IBOutlet weak var scrollToBottomContainerViewConstraint: NSLayoutConstraint!
     private let disposeBag = DisposeBag()
     var allowForGetHistory: Bool = true
-    var isInMessageViewController : Bool = true
     var recorder: AVAudioRecorder?
     var isRecordingVoice = false
     var voiceRecorderTimer: Timer?
@@ -256,7 +257,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
         let inputTextViewInitialHeight:CGFloat = 22.0 //initial without reply || forward || attachment || text
         self.inputTextViewHeight = inputTextViewInitialHeight
         self.setInputBarHeight()
-        
+        self.managePinnedMessage()
         
         inputTextView.delegate = self
         inputTextView.placeholder = "Write here ..."
@@ -373,7 +374,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
     func findAllMessages(isHistory: Bool = false) -> Results<IGRoomMessage>!{
         
         if lastId == 0 {
-            let predicate = NSPredicate(format: "roomId = %lld AND isDeleted == false", self.room!.id)
+            let predicate = NSPredicate(format: "roomId = %lld AND isDeleted == false AND id != %lld", self.room!.id, 0)
             allMessages = try! Realm().objects(IGRoomMessage.self).filter(predicate).sorted(by: sortProperties)
             
             let messageCount = allMessages.count
@@ -410,7 +411,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
             }
         }
         
-        let predicate = NSPredicate(format: "roomId = %lld AND id >= %lld AND isDeleted == false", self.room!.id, lastId)
+        let predicate = NSPredicate(format: "roomId = %lld AND id >= %lld AND isDeleted == false AND id != %lld", self.room!.id, lastId, 0)
         let messages = try! Realm().objects(IGRoomMessage.self).filter(predicate).sorted(by: sortProperties)
         
         DispatchQueue.main.async {
@@ -487,6 +488,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        IGRecentsTableViewController.visibleChat[(room?.id)!] = true
         IGAppManager.sharedManager.currentMessagesNotificationToekn = self.notificationToken
         let navigationItem = self.navigationItem as! IGNavigationItem
 //        _ = Observable.from(object: room!)
@@ -536,10 +538,10 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        IGRecentsTableViewController.visibleChat[(room?.id)!] = false
         IGAppManager.sharedManager.currentMessagesNotificationToekn = nil
         self.room!.saveDraft(inputTextView.text, replyToMessage: selectedMessageToReply)
         self.sendCancelTyping()
-        self.isInMessageViewController = false
         self.sendCancelRecoringVoice()
         if let room = self.room {
             IGFactory.shared.markAllMessagesAsRead(roomId: room.id)
@@ -594,12 +596,12 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
     }
     
     private func sendSeenForMessage(_ message: IGRoomMessage) {
-        if message.status == .seen {
+        if message.authorHash == IGAppManager.sharedManager.authorHash() || message.status == .seen {
             return
         }
         switch self.room!.type {
         case .chat:
-            if isInMessageViewController {
+            if IGRecentsTableViewController.visibleChat[(room?.id)!]! {
                 IGChatUpdateStatusRequest.Generator.generate(roomID: self.room!.id, messageID: message.id, status: .seen).success({ (responseProto) in
                     switch responseProto {
                     case let response as IGPChatUpdateStatusResponse:
@@ -612,7 +614,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
                 }).send()
             }
         case .group:
-            if isInMessageViewController {
+            if IGRecentsTableViewController.visibleChat[(room?.id)!]! {
                 IGGroupUpdateStatusRequest.Generator.generate(roomID: self.room!.id, messageID: message.id, status: .seen).success({ (responseProto) in
                     switch responseProto {
                     case let response as IGPGroupUpdateStatusResponse:
@@ -626,7 +628,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
             }
             break
         case .channel:
-            if isInMessageViewController {
+            if IGRecentsTableViewController.visibleChat[(room?.id)!]! {
                 if let message = self.messages?.last {
                     IGChannelGetMessagesStatsRequest.Generator.generate(messages: [message], room: self.room!).success({ (responseProto) in
                         
@@ -772,7 +774,139 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
         
     }
     
+    func groupPin(messageId: Int64 = 0){
+        
+        var message = "Are you sure unpin this message?"
+        var title = "Unpin For All Users"
+        var titleMe = "Unpin Just For Me"
+        if messageId != 0 {
+            message = "Are you sure pin this message?"
+            title = "Pin"
+        }
+        
+        let alertC = UIAlertController(title: nil, message: message, preferredStyle: IGGlobal.detectAlertStyle())
+        let unpin = UIAlertAction(title: title, style: .default, handler: { (action) in
+            IGGroupPinMessageRequest.Generator.generate(roomId: (self.room?.id)!, messageId: messageId).success({ (protoResponse) in
+                DispatchQueue.main.async {
+                    if let groupPinMessage = protoResponse as? IGPGroupPinMessageResponse {
+                        if groupPinMessage.hasIgpPinnedMessage {
+                            self.txtPinnedMessage.text = IGRoomMessage.detectPinMessageProto(message: groupPinMessage.igpPinnedMessage)
+                            self.pinnedMessageView.isHidden = false
+                        } else {
+                            self.pinnedMessageView.isHidden = true
+                        }
+                        IGGroupPinMessageRequest.Handler.interpret(response: groupPinMessage)
+                    }
+                }
+            }).error({ (errorCode, waitTime) in
+                switch errorCode {
+                case .timeout:
+                    DispatchQueue.main.async {
+                        let alert = UIAlertController(title: "Timeout", message: "Please try again later for unpin message", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(okAction)
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                default:
+                    break
+                }
+                
+            }).send()
+        })
+        
+        let unpinJustForMe = UIAlertAction(title: titleMe, style: .default, handler: { (action) in
+            self.pinnedMessageView.isHidden = true
+            IGFactory.shared.roomPinMessage(roomId: (self.room?.id)!)
+        })
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertC.addAction(unpin)
+        if messageId == 0 {
+            alertC.addAction(unpinJustForMe)
+        }
+        alertC.addAction(cancel)
+        self.present(alertC, animated: true, completion: nil)
+    }
     
+    func channelPin(messageId: Int64 = 0){
+        
+        var message = "Are you sure unpin this message?"
+        var title = "Unpin"
+        var titleMe = "Unpin Just For Me"
+        if messageId != 0 {
+            message = "Are you sure pin this message?"
+            title = "Pin"
+        }
+        
+        let alertC = UIAlertController(title: nil, message: message, preferredStyle: IGGlobal.detectAlertStyle())
+        let unpin = UIAlertAction(title: title, style: .default, handler: { (action) in
+            IGChannelPinMessageRequest.Generator.generate(roomId: (self.room?.id)!, messageId: messageId).success({ (protoResponse) in
+                DispatchQueue.main.async {
+                    if let channelPinMessage = protoResponse as? IGPChannelPinMessageResponse {
+                        if channelPinMessage.hasIgpPinnedMessage {
+                            self.txtPinnedMessage.text = IGRoomMessage.detectPinMessageProto(message: channelPinMessage.igpPinnedMessage)
+                            self.pinnedMessageView.isHidden = false
+                        } else {
+                            self.pinnedMessageView.isHidden = true
+                        }
+                        IGChannelPinMessageRequest.Handler.interpret(response: channelPinMessage)
+                    }
+                }
+            }).error({ (errorCode, waitTime) in
+                switch errorCode {
+                case .timeout:
+                    DispatchQueue.main.async {
+                        let alert = UIAlertController(title: "Timeout", message: "Please try again later for unpin message", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(okAction)
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                default:
+                    break
+                }
+                
+            }).send()
+        })
+        
+        let unpinJustForMe = UIAlertAction(title: titleMe, style: .default, handler: { (action) in
+            self.pinnedMessageView.isHidden = true
+            IGFactory.shared.roomPinMessage(roomId: (self.room?.id)!)
+        })
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertC.addAction(unpin)
+        if messageId == 0 {
+            alertC.addAction(unpinJustForMe)
+        }
+        alertC.addAction(cancel)
+        self.present(alertC, animated: true, completion: nil)
+    }
+    
+    func groupPinGranted() -> Bool{
+        if room?.type == .group && room?.groupRoom?.role != .member {
+            return true
+        }
+        return false
+    }
+    
+    func channelPinGranted() -> Bool{
+        if room?.type == .channel && room?.channelRoom?.role != .member {
+            return true
+        }
+        return false
+    }
+    
+    @IBAction func didTapOnPinClose(_ sender: UIButton) {
+        if groupPinGranted() {
+            self.groupPin()
+            return
+        } else if channelPinGranted() {
+            self.channelPin()
+            return
+        }
+    }
     
     //MARK: IBActions
     @IBAction func didTapOnSendButton(_ sender: UIButton) {
@@ -871,13 +1005,12 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
                 message.type = .text
             }
             message.repliedTo = selectedMessageToReply
-            message.forwardedFrom = selectedMessageToForwardToThisRoom
-            
             message.roomId = self.room!.id
             
             let detachedMessage = message.detach()
             
             IGFactory.shared.saveNewlyWriitenMessageToDatabase(detachedMessage)
+            message.forwardedFrom = selectedMessageToForwardToThisRoom // Hint: if use this line before "saveNewlyWriitenMessageToDatabase" app will be crashed
             IGMessageSender.defaultSender.send(message: message, to: room!)
             
             self.inputBarSendButton.isHidden = true
@@ -928,7 +1061,9 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate , UIG
                         let randomString = IGGlobal.randomString(length: 16) + "_"
                         let fileNameOnDisk = randomString + selectedFile.fileName!
                         attachment.fileNameOnDisk = fileNameOnDisk
-                        self.saveAttachmentToLocalStorage(data: imgData!, fileNameOnDisk: fileNameOnDisk)
+                        DispatchQueue.main.async {
+                            self.saveAttachmentToLocalStorage(data: imgData!, fileNameOnDisk: fileNameOnDisk)
+                        }
                         
                         attachment.height = Double((scaledImage?.size.height)!)
                         attachment.width = Double((scaledImage?.size.width)!)
@@ -1749,16 +1884,18 @@ extension IGMessageViewController: IGMessageCollectionViewDataSource {
             
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionElementKindSectionFooter, withReuseIdentifier: IGMessageLogCollectionViewCell.cellReuseIdentifier(), for: indexPath) as! IGMessageLogCollectionViewCell
             
-            if let message = messages?[indexPath.section] {
-                if message.shouldFetchBefore {
-                    header.setText("Loading ...")
-                } else {
-                    
-                    let dayTimePeriodFormatter = DateFormatter()
-                    dayTimePeriodFormatter.dateFormat = "MMMM dd"
-                    dayTimePeriodFormatter.calendar = Calendar.current
-                    let dateString = dayTimePeriodFormatter.string(from: message.creationTime!)
-                    header.setText(dateString)
+            if indexPath.section <= messages.count {
+                if let message = messages?[indexPath.section] {
+                    if message.shouldFetchBefore {
+                        header.setText("Loading ...")
+                    } else {
+                        
+                        let dayTimePeriodFormatter = DateFormatter()
+                        dayTimePeriodFormatter.dateFormat = "MMMM dd"
+                        dayTimePeriodFormatter.calendar = Calendar.current
+                        let dateString = dayTimePeriodFormatter.string(from: message.creationTime!)
+                        header.setText(dateString)
+                    }
                 }
             }
             reusableview = header
@@ -1800,7 +1937,7 @@ extension IGMessageViewController: UICollectionViewDelegateFlowLayout {
         if (messages!.count < 20 && lowerAllow) { // HINT: this number(20) should set lower than getMessageLimit(25) for work correct
             lowerAllow = false
             
-            let predicate = NSPredicate(format: "roomId = %lld AND isDeleted == false", self.room!.id)
+            let predicate = NSPredicate(format: "roomId = %lld AND isDeleted == false AND id != %lld", self.room!.id, 0)
             messages = try! Realm().objects(IGRoomMessage.self).filter(predicate).sorted(by: sortProperties)
             updateObserver()
             
@@ -1837,7 +1974,7 @@ extension IGMessageViewController: UICollectionViewDelegateFlowLayout {
                 let predicate = NSPredicate(format: "roomId = %lld", self.room!.id)
                 if let message = try! Realm().objects(IGRoomMessage.self).filter(predicate).sorted(by: sortProperties).last {
                     if isFirstHistory {
-                        let predicate = NSPredicate(format: "roomId = %lld AND isDeleted == false", self.room!.id)
+                        let predicate = NSPredicate(format: "roomId = %lld AND isDeleted == false AND id != %lld", self.room!.id, 0)
                         messages = try! Realm().objects(IGRoomMessage.self).filter(predicate).sorted(by: sortProperties)
                         updateObserver()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -2004,6 +2141,15 @@ extension IGMessageViewController: GrowingTextViewDelegate {
             self.setCollectionViewInset()
         })
     }
+    
+    func managePinnedMessage(){
+        if room?.pinMessage != nil && room?.pinMessage?.id != room?.deletedPinMessageId {
+            txtPinnedMessage.text = IGRoomMessage.detectPinMessage(message: (room?.pinMessage)!)
+            pinnedMessageView.isHidden = false
+        } else {
+            pinnedMessageView.isHidden = true
+        }
+    }
 }
 
 //MARK: - AVAudioRecorderDelegate
@@ -2044,10 +2190,30 @@ extension IGMessageViewController: AVAudioRecorderDelegate {
 //MARK: - IGMessageGeneralCollectionViewCellDelegate
 extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
     func didTapAndHoldOnMessage(cellMessage: IGRoomMessage, cell: IGMessageGeneralCollectionViewCell) {
-        print(#function)
         let alertC = UIAlertController(title: nil, message: nil, preferredStyle: IGGlobal.detectAlertStyle())
         let copy = UIAlertAction(title: "Copy", style: .default, handler: { (action) in
             self.copyMessage(cellMessage)
+        })
+        
+        var pinTitle = "Pin Message"
+        if self.room?.pinMessage != nil && self.room?.pinMessage?.id == cellMessage.id {
+            pinTitle = "Unpin Message"
+        }
+        
+        let pin = UIAlertAction(title: pinTitle, style: .default, handler: { (action) in
+            if self.groupPinGranted(){
+                if self.room?.pinMessage != nil && self.room?.pinMessage?.id == cellMessage.id {
+                    self.groupPin()
+                } else {
+                    self.groupPin(messageId: cellMessage.id)
+                }
+            } else if self.channelPinGranted() {
+                if self.room?.pinMessage != nil && self.room?.pinMessage?.id == cellMessage.id {
+                    self.channelPin()
+                } else {
+                    self.channelPin(messageId: cellMessage.id)
+                }
+            }
         })
         let reply = UIAlertAction(title: "Reply", style: .default, handler: { (action) in
             self.replyMessage(cellMessage)
@@ -2092,6 +2258,10 @@ extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
         
         //Copy
         alertC.addAction(copy)
+        
+        if groupPinGranted() || channelPinGranted() {
+            alertC.addAction(pin)
+        }
         
         //Reply
         if !(room!.isReadOnly){

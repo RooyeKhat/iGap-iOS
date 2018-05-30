@@ -47,6 +47,7 @@ class IGRoomMessage: Object {
     @objc dynamic var typeRaw:            IGRoomMessageType.RawValue      = IGRoomMessageType.unknown.rawValue
     @objc dynamic var statusRaw:          IGRoomMessageStatus.RawValue    = IGRoomMessageStatus.unknown.rawValue
     @objc dynamic var temporaryId:        String?
+    @objc dynamic var randomId:           Int64                           = -1
 
     var status: IGRoomMessageStatus {
         get {
@@ -209,6 +210,8 @@ class IGRoomMessage: Object {
         if igpMessage.igpPreviousMessageID != 0 {
             self.previuosMessageUID = igpMessage.igpPreviousMessageID
         }
+        
+        self.randomId = igpMessage.igpRandomID
     }
     
     //used when sending a message
@@ -224,6 +227,7 @@ class IGRoomMessage: Object {
         self.status = IGRoomMessageStatus.sending
         self.temporaryId = IGGlobal.randomString(length: 64)
         self.primaryKeyId = IGGlobal.randomString(length: 64)
+        self.randomId = IGGlobal.randomId()
         let predicate = NSPredicate(format: "id = %lld", IGAppManager.sharedManager.userID()!)
         let realm = try! Realm()
         if let userInDb = realm.objects(IGRegisteredUser.self).filter(predicate).first {
@@ -240,6 +244,76 @@ class IGRoomMessage: Object {
             prefix = "R_"
         }
         return "\(prefix)\(messageID)_\(roomID)"
+    }
+    
+    internal static func detectPinMessage(message: IGRoomMessage) -> String{
+        
+        var messageType = message.type
+        if let reply = message.repliedTo {
+            messageType = reply.type
+        }
+        let pinText = "is pinned"
+        
+        if messageType == .text {
+            if let reply = message.repliedTo {
+                return "'\(reply.message!)' \(pinText)"
+            }
+            return "'\(message.message!)' \(pinText)"
+        } else if messageType == .image || messageType == .imageAndText {
+            return "'image' \(pinText)"
+        } else if messageType == .video || messageType == .videoAndText {
+            return "'video' \(pinText)"
+        } else if messageType == .gif || messageType == .gifAndText {
+            return "'gif' \(pinText)"
+        } else if messageType == .audio || messageType == .audioAndText {
+            return "'audio' \(pinText)"
+        } else if messageType == .file || messageType == .fileAndText {
+            return "'file' \(pinText)"
+        } else if messageType == .contact {
+            return "'contact' \(pinText)"
+        } else if messageType == .voice {
+            return "'voice' \(pinText)"
+        } else if messageType == .location {
+            return "'location' \(pinText)"
+        }
+        
+        return "'unknown' pinned message"
+    }
+    
+    internal static func detectPinMessageProto(message: IGPRoomMessage) -> String{
+        
+        var messageType = message.igpMessageType
+        let pinText = "is pinned"
+        
+        if message.hasIgpReplyTo {
+           messageType = message.igpReplyTo.igpMessageType
+        }
+        
+        if messageType == .text {
+            if message.hasIgpReplyTo {
+                return "'\(message.igpReplyTo.igpMessage)' \(pinText)"
+            }
+            return "'\(message.igpMessage)' \(pinText)"
+            
+        } else if messageType == .image || messageType == .imageText {
+            return "'image' \(pinText)"
+        } else if messageType == .video || messageType == .videoText {
+            return "'video' \(pinText)"
+        } else if messageType == .gif || messageType == .gifText {
+            return "'gif' \(pinText)"
+        } else if messageType == .audio || messageType == .audioText {
+            return "'audio' \(pinText)"
+        } else if messageType == .file || messageType == .fileText {
+            return "'file' \(pinText)"
+        } else if messageType == .contact {
+            return "'contact' \(pinText)"
+        } else if messageType == .voice {
+            return "'voice' \(pinText)"
+        } else if messageType == .location {
+            return "'location' \(pinText)"
+        }
+        
+        return "'unknown' pinned message"
     }
     
     //detach from current realm

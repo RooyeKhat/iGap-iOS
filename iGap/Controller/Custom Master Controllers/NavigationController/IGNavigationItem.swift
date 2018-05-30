@@ -421,7 +421,7 @@ class IGNavigationItem: UINavigationItem {
         self.centerViewMainLabel!.font = UIFont.igFont(ofSize: 16.0, weight: .bold)//boldSystemFont(ofSize: 16)
         self.centerViewContainer!.addSubview(self.centerViewMainLabel!)
         self.centerViewMainLabel!.snp.makeConstraints { (make) in
-            make.top.equalTo(self.centerViewContainer!.snp.top).offset(0)
+            make.top.equalTo(self.centerViewContainer!.snp.top)
             make.leading.equalTo(self.centerViewContainer!.snp.leading).offset(5).priority(.required)
             make.width.lessThanOrEqualToSuperview().offset(-25)
         }
@@ -432,9 +432,13 @@ class IGNavigationItem: UINavigationItem {
         self.centerViewSubLabel!.font = UIFont.igFont(ofSize: 12.0, weight: .regular)//boldSystemFont(ofSize: 12)
         self.centerViewContainer!.addSubview(self.centerViewSubLabel!)
         self.centerViewSubLabel!.snp.makeConstraints { (make) in
-            make.top.equalTo(self.centerViewMainLabel!.snp.bottom).offset(3)
+            make.top.equalTo(self.centerViewMainLabel!.snp.bottom).offset(-3)
             make.leading.equalTo(self.centerViewContainer!.snp.leading).offset(5)
         }
+        
+        let verifiedFrame = CGRect(x: 20, y: 5, width: 25, height: 25)
+        let imgVerified = UIImageView(frame: verifiedFrame)
+        imgVerified.image = UIImage(named:"IG_Verify")
         
         if room.mute == .mute {
             let muteFrame = CGRect(x: 20, y: 5, width: 25, height: 25)
@@ -449,6 +453,26 @@ class IGNavigationItem: UINavigationItem {
                 make.top.equalTo(self.centerViewMainLabel!.snp.top).offset(3)
                 make.right.equalTo(self.centerViewMainLabel!.snp.right).offset(20)
             }
+            
+            if isVerified(room: room) {
+                self.centerViewContainer!.addSubview(imgVerified)
+                imgVerified.snp.makeConstraints { (make) in
+                    make.width.equalTo(20)
+                    make.height.equalTo(20)
+                    make.top.equalTo(self.centerViewMainLabel!.snp.top).offset(3)
+                    make.right.equalTo(imgMute.snp.right).offset(25)
+                }
+            }
+        } else {
+            if isVerified(room: room) {
+                self.centerViewContainer!.addSubview(imgVerified)
+                imgVerified.snp.makeConstraints { (make) in
+                    make.width.equalTo(20)
+                    make.height.equalTo(20)
+                    make.top.equalTo(self.centerViewMainLabel!.snp.top).offset(3)
+                    make.right.equalTo(self.centerViewMainLabel!.snp.right).offset(25)
+                }
+            }
         }
         
         if let peer = room.chatRoom?.peer {
@@ -460,6 +484,22 @@ class IGNavigationItem: UINavigationItem {
         } else if let channelRoom = room.channelRoom {
             self.centerViewSubLabel!.text = "\(channelRoom.participantCount) member\(channelRoom.participantCount>1 ? "s" : "")"
         }
+    }
+    
+    private func isVerified(room: IGRoom) -> Bool {
+        var verified = false
+        if room.type == .chat {
+            if let user = room.chatRoom?.peer {
+                if user.isVerified {
+                    verified = true
+                }
+            }
+        } else if room.type == .channel {
+            if (room.channelRoom?.isVerified)! {
+                verified = true
+            }
+        }
+        return verified
     }
     
     private func setLastSeenLabelForUser(_ user: IGRegisteredUser , room : IGRoom) {

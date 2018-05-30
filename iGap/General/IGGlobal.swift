@@ -44,6 +44,10 @@ class IGGlobal {
         return randomString
     }
     
+    public class func randomId() -> Int64 {
+        return Int64(arc4random()) + (Int64(arc4random()) << 32)
+    }
+    
     /* if device is iPad return "alert" style otherwise will be returned "actionSheet" style */
     public class func detectAlertStyle() -> UIAlertControllerStyle{
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -84,7 +88,7 @@ extension UIColor {
     }
     
     //MARK: General Colors
-    class func organizationalColor() -> UIColor {
+    class func organizationalColor() -> UIColor { // iGap Color
         return UIColor(red:0/255.0, green:176.0/255.0, blue:191.0/255.0, alpha:1.0)
     }
     
@@ -597,6 +601,14 @@ extension String {
         
         return ceil(boundingBox.width)
     }
+    
+    public func getExtension() -> String? {
+        let ext = (self as NSString).pathExtension
+        if ext.isEmpty {
+            return nil
+        }
+        return ext
+    }
 }
 
 extension Array where Element: Hashable {
@@ -604,5 +616,13 @@ extension Array where Element: Hashable {
         let thisSet = Set(self)
         let otherSet = Set(other)
         return Array(thisSet.symmetricDifference(otherSet))
+    }
+}
+
+extension Array {
+    func chunks(_ chunkSize: Int) -> [[Element]] {
+        return stride(from: 0, to: self.count, by: chunkSize).map {
+            Array(self[$0..<Swift.min($0 + chunkSize, self.count)])
+        }
     }
 }

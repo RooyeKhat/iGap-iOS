@@ -39,6 +39,7 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
     @IBOutlet weak var roomTypeIndicatorImageView: UIImageView!
     @IBOutlet weak var roomTitleLabelLeftConstraint: NSLayoutConstraint!
     @IBOutlet weak var imgMute: UIImageView!
+    @IBOutlet weak var imgVerified: UIImageView!
     
     let currentLoggedInUserID = IGAppManager.sharedManager.userID()
     
@@ -146,12 +147,29 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
         case .chat:
             roomTypeIndicatorImageView.image = nil
             roomTitleLabelLeftConstraint.constant = 16
+            
+            if let user = room.chatRoom?.peer {
+                if user.isVerified {
+                    imgVerified.isHidden = false
+                } else {
+                    imgVerified.isHidden = true
+                }
+            }
+            
         case .group:
             roomTypeIndicatorImageView.image = UIImage(named: "IG_Chat_List_Type_Group")
             roomTitleLabelLeftConstraint.constant = 36
+            imgVerified.isHidden = true
+            
         case .channel:
             roomTypeIndicatorImageView.image = UIImage(named: "IG_Chat_List_Type_Channel")
             roomTitleLabelLeftConstraint.constant = 36
+            
+            if (room.channelRoom?.isVerified)! {
+                imgVerified.isHidden = false
+            } else {
+                imgVerified.isHidden = true
+            }
         }
 
         if room.mute == IGRoom.IGRoomMute.mute {
@@ -221,7 +239,6 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
             deliveryStateImageView.isHidden = true
             unreadCountLabel.isHidden = false
             unreadCountLabel.text = "\(room.unreadCount)"
-           // self.sendDeliveredMessage()
             let labelFrame = unreadCountLabel.textRect(forBounds: CGRect(x: 0, y: 0, width: CGFloat.greatestFiniteMagnitude, height: 18.0) , limitedToNumberOfLines: 1)
             lastMessageStatusContainerViewWidthConstraint.constant = max(lastMessageStatusContainerViewWidthConstraintDefault, labelFrame.size.width + 8)
         } else {
@@ -333,41 +350,6 @@ class IGChatRoomListTableViewCell: MGSwipeTableCell {
         } else {
             self.timeLabel.text = ""
             self.lastMessageLabel.text  = ""
-        }
-    }
-    func sendDeliveredMessage(){
-        if let message = self.room?.lastMessage{
-            switch self.room!.type {
-            case .chat:
-                IGChatUpdateStatusRequest.Generator.generate(roomID: self.room!.id, messageID: message.id, status: .delivered).success({ (responseProto) in
-                    switch responseProto {
-                    case let response as IGPChatUpdateStatusResponse:
-                        IGChatUpdateStatusRequest.Handler.interpret(response: response)
-                    default:
-                        break
-                    }
-                }).error({ (errorCode, waitTime) in
-                    
-                }).send()
-            case .group:
-                IGGroupUpdateStatusRequest.Generator.generate(roomID: self.room!.id, messageID: message.id, status: .delivered).success({ (responseProto) in
-                    switch responseProto {
-                    case let response as IGPGroupUpdateStatusResponse:
-                        IGGroupUpdateStatusRequest.Handler.interpret(response: response)
-                    default:
-                        break
-                    }
-                }).error({ (errorCode, waitTime) in
-                    
-                }).send()
-                break
-            case .channel:
-                    IGChannelGetMessagesStatsRequest.Generator.generate(messages: [message], room: self.room!).success({ (responseProto) in
-                        
-                    }).error({ (errorCode, waitTime) in
-                        
-                    }).send()
-            }
         }
     }
 }
