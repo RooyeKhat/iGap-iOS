@@ -148,6 +148,12 @@ class CellSizeCalculator: NSObject {
                 finalSize.width = min(finalSize.width, maximumWidth)
                 forwardedMessageBodyHeight = stringRect.height
             }
+            
+            if originalMessage.type == .contact {
+                let contactSize = IGContactInMessageCellView.sizeForContact(originalMessage.contact!)
+                finalSize.width = contactSize.width
+                finalSize.height += contactSize.height
+            }
         }
         
         //MARK: attachment
@@ -215,15 +221,6 @@ class CellSizeCalculator: NSObject {
             }
         }
         
-        
-    
-        
-        
-        
-       
-        
-        
-        
         if let text = message.message as NSString? {
             let stringRect = IGMessageCollectionViewCell.bodyRect(text: text, isEdited: message.isEdited, addArbitraryTexts: true)
             finalSize.height += stringRect.height
@@ -241,19 +238,32 @@ class CellSizeCalculator: NSObject {
             finalSize.height = 30.0
         } else if message.type == .contact {
             let contactSize = IGContactInMessageCellView.sizeForContact(message.contact!)
+            if (finalSize.height == 0) { // use this block for avoid from contact small show (bad view) before when message is in sending state
+                finalSize.height = 40
+            }
             finalSize.width = contactSize.width
             finalSize.height += contactSize.height
         } else {
             finalSize.height = max(IGMessageCollectionViewCell.ConstantSizes.Bubble.Height.Minimum.TextOnly + 6, finalSize.height)
         }
         
+        if message.type == .location || (message.forwardedFrom != nil && message.forwardedFrom?.type == .location) {
+            let locationSize = LocationCell.sizeForLocation()
+            finalSize.width = locationSize.width
+            finalSize.height += locationSize.height
+            messageAttachmentHeight = locationSize.height
+        }
         
         finalSize.height += 7.5
         
         if message.forwardedFrom != nil {
             if message.forwardedFrom?.type == .contact {
                 finalSize.width = 200
-                finalSize.height += 30
+                finalSize.height -= 10
+            } else if message.forwardedFrom?.type == .video || message.forwardedFrom?.type == .videoAndText {
+                if finalSize.height > finalSize.width {
+                    finalSize.width += 50
+                }
             } else if message.forwardedFrom?.type == .audio || message.forwardedFrom?.type == .audioAndText {
                 finalSize.width = 220
             } else if message.forwardedFrom?.type == .file || message.forwardedFrom?.type == .fileAndText {
@@ -262,6 +272,9 @@ class CellSizeCalculator: NSObject {
                 finalSize.width = 220
             } else if message.forwardedFrom?.type == .image || message.forwardedFrom?.type == .imageAndText {
                 finalSize.height -= 7.5
+                if finalSize.height > finalSize.width {
+                    finalSize.width += 45
+                }
             } else {
                 finalSize.height -= 15
             }

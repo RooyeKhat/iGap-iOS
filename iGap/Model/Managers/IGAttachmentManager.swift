@@ -14,21 +14,14 @@ import RealmSwift
 
 class IGAttachmentManager: NSObject {
     static let sharedManager = IGAttachmentManager()
-//    private var cache: NSCache<NSString, IGFile>
     private var variablesCache: NSCache<NSString, Variable<IGFile>>
     
     private override init() {
-//        cache = NSCache()
-//        cache.countLimit = 2000
-//        cache.name = "im.igap.cache.IGAttachmentManager"
-        
         variablesCache = NSCache()
         variablesCache.countLimit = 2000
         variablesCache.name = "im.igap.cache.IGAttachmentManager"
-        
         super.init()
     }
-    
     
     func add(attachmentRef: ThreadSafeReference<IGFile>) {
         let realm = try! Realm()
@@ -105,5 +98,71 @@ class IGAttachmentManager: NSObject {
             }
         }
         return nil
+    }
+    
+    func appendDataToDisk(attachment: IGFile, data: Data) {
+        if let outputStream = OutputStream(url: attachment.path()!, append: true) {
+            outputStream.open()
+            let bytesWritten = outputStream.write(data.bytes, maxLength: data.count)
+            if bytesWritten < 0 {
+                print("write failure")
+            }
+            outputStream.close()
+        } else {
+            print("unable to open file")
+        }
+    }
+    
+    func convertFileSize(sizeInByte : Int) -> String {
+        if sizeInByte == 0 {
+            return ""
+        } else if sizeInByte < 1024 { // Byte
+            return "\(sizeInByte) B"
+        } else if sizeInByte < 1048576 { // KB
+            let size: Double = Double(sizeInByte) / 1024.0
+            return String(format: "%.2f KB", size)
+        } else if sizeInByte < 1073741824 { // MB
+            let size: Double = Double(sizeInByte) / 1048576.0
+            return String(format: "%.2f MB", size)
+        } else { // GB
+            let size: Double = Double(sizeInByte) / 1073741824.0
+            return String(format: "%.2f GB", size)
+        }
+    }
+    
+    func convertFileTime(seconds: Int) -> String{
+        var time = ""
+        var secondTime = seconds
+        
+        let hour = seconds / 3600
+        let minute = seconds / 60
+        
+        if hour > 0 {
+             secondTime = secondTime % 3600
+            if hour > 9 {
+                time += "\(hour):"
+            } else {
+                time += "0\(hour):"
+            }
+        }
+        
+        if minute > 0 {
+            secondTime = secondTime % 60
+            if minute > 9 {
+                time += "\(minute):"
+            } else {
+                time += "0\(minute):"
+            }
+        } else {
+            time += "00:"
+        }
+        
+        if secondTime > 9 {
+            time += "\(secondTime)"
+        } else {
+            time += "0\(secondTime)"
+        }
+        
+        return time
     }
 }

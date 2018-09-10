@@ -9,7 +9,6 @@
  */
 
 import UIKit
-//import Starscream
 import SwiftProtobuf
 import Reachability.Swift
 
@@ -21,7 +20,6 @@ class IGWebSocketManager: NSObject {
     
     private let reachability = Reachability()!
     private let socket = WebSocket(url: URL(string: "wss://secure.igap.net/hybrid/")!)
-//    private let socket = WebSocket(url: URL(string: "ws://10.10.10.102:6708")!)
     fileprivate var isConnectionSecured : Bool = false
     fileprivate var websocketSendQueue = DispatchQueue(label: "im.igap.ios.queue.ws.send")
     fileprivate var websocketReceiveQueue = DispatchQueue(label: "im.igap.ios.queue.ws.receive")
@@ -95,6 +93,7 @@ class IGWebSocketManager: NSObject {
         reachability.whenUnreachable = { reachability in
             // this is called on a background thread
             print ("Network Unreachable")
+            IGDownloadManager.sharedManager.pauseAllDownloads(internetConnectionLost: true)
             IGAppManager.sharedManager.setNetworkConnectionStatus(.waitingForNetwork)
             IGAppManager.sharedManager.isUserLoggedIn.value = false
             self.socket.disconnect(forceTimeout:0)
@@ -172,6 +171,7 @@ extension IGWebSocketManager: WebSocketDelegate {
         DispatchQueue.main.asyncAfter(deadline: deadlineTime) {
             self.connectAndAddTimeoutHandler()
         }
+        IGDownloadManager.sharedManager.pauseAllDownloads()
     }
     
     func websocketDidReceiveMessage(socket: WebSocket, text: String) {

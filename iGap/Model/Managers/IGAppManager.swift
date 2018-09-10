@@ -15,6 +15,7 @@ import SwiftProtobuf
 import RealmSwift
 import RxSwift
 import WebRTC
+import FirebaseInstanceID
 
 class IGAppManager: NSObject {
     static let sharedManager = IGAppManager()
@@ -28,6 +29,7 @@ class IGAppManager: NSObject {
     
     var realm = try! Realm()
     var connectionStatus: Variable<ConnectionStatus>
+    static var connectionStatusStatic: IGAppManager.ConnectionStatus?
     var isUserLoggedIn:   Variable<Bool>
     var isTryingToLoginUser: Bool = false
     var currentMessagesNotificationToekn: NotificationToken?
@@ -296,6 +298,8 @@ class IGAppManager: NSObject {
                         self.isTryingToLoginUser = false
                         switch responseProto {
                         case _ as IGPUserLoginResponse:
+                            IGUserLoginRequest.Handler.intrepret(response: (responseProto as? IGPUserLoginResponse)!)
+                            IGContactManager.sharedManager.manageContact()
                             self.setUserLoginSuccessful()
                             self.setUserUpdateStatus(status: .online)
                             self.getSignalingConfiguration(force: true)

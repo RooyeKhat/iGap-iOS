@@ -12,9 +12,13 @@ import UIKit
 import Fabric
 import Crashlytics
 import RealmSwift
+import FirebaseMessaging
+import Firebase
+import UserNotifications
+import IGProtoBuff
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
 
     var window: UIWindow?
     var isNeedToSetNickname : Bool = true
@@ -22,6 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     internal static var userIdRegister: Int64?
     internal static var usernameRegister: String?
     internal static var authorHashRegister: String?
+    internal static var isFirstEnterToApp: Bool = true
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
         
@@ -31,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        
 //        _ = try! Realm()
         let config = Realm.Configuration(
-            schemaVersion: 15,
+            schemaVersion: 16,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above
@@ -69,6 +74,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     //version 0.4.7 build 462
                 } else if (oldSchemaVersion < 15) {
                     //version 0.4.8 build 463
+                } else if (oldSchemaVersion < 16) {
+                    //version 0.6.0 build 467
                 }
         })
         Realm.Configuration.defaultConfiguration = config
@@ -89,6 +96,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         UserDefaults.standard.setValue(false, forKey:"_UIConstraintBasedLayoutLogUnsatisfiable")
 
+        pushNotification(application)
+        
         return true
     }
     
@@ -114,6 +123,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
     
     }
+    
+    /******************* Notificaton Start *******************/
+    
+    func pushNotification(_ application: UIApplication){
+        FirebaseApp.configure()
+        Messaging.messaging().isAutoInitEnabled = true
+        Messaging.messaging().delegate = self
+        Messaging.messaging().shouldEstablishDirectChannel = true
+        
+        if #available(iOS 10.0, *) {
+            // For iOS 10 display notification (sent via APNS)
+            UNUserNotificationCenter.current().delegate = self
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound, .carPlay]
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: authOptions,
+                completionHandler: {_, _ in })
+        } else {
+            let settings: UIUserNotificationSettings = UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
+            application.registerUserNotificationSettings(settings)
+        }
+        
+        application.registerForRemoteNotifications()
+    }
+    /******************* Notificaton End *******************/
+    
     
     func logoutAndShowRegisterViewController() {
         IGAppManager.sharedManager.clearDataOnLogout()

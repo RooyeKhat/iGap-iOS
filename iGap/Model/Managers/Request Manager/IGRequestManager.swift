@@ -295,6 +295,9 @@ let protoClassesLookupTable: [Int: (proto: ResponseMessage.Type, reponseHandler:
             IGClientPinRoomRequest.Handler.self             as IGRequest.Handler.Type),
     30616: (IGPClientRoomReportResponse.self                as ResponseMessage.Type,
             IGClientRoomReportRequest.Handler.self          as IGRequest.Handler.Type),
+    30617: (IGPClientRegisterDeviceResponse.self            as ResponseMessage.Type,
+            IGClientRegisterDeviceRequest.Handler.self      as IGRequest.Handler.Type),
+    
 
     //File: 307xx
     30700: (IGPFileUploadOptionResponse.self                as ResponseMessage.Type,
@@ -526,7 +529,7 @@ class IGRequestManager {
                     resolvedRequests[response.igpID] = correspondingRequestWrapper
                     pendingRequests[response.igpID]  = nil
                 } else if resolvedRequests[response.igpID] != nil {
-                    print ("✦ \(NSDate.timeIntervalSinceReferenceDate) ----- Response is already resolved")
+                    print ("✦ \(NSDate.timeIntervalSinceReferenceDate) -----XXX Response is already resolved")
                 } else {
                     //this is a `pushed` message
                     //call its corresponding handler class to handle push
@@ -553,6 +556,15 @@ class IGRequestManager {
             pendingRequests[requestWrapper.id]  = nil
             if let error = requestWrapper.error {
                 error(.timeout, nil)
+            }
+        }
+    }
+    
+    func cancelRequest(identity: String) {
+        for requestWrapper in pendingRequests.values {
+            if requestWrapper.identity == identity {
+                resolvedRequests[requestWrapper.id] = requestWrapper
+                pendingRequests[requestWrapper.id] = nil
             }
         }
     }

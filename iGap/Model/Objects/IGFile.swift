@@ -25,11 +25,13 @@ class IGFile: Object {
         case downloading
         case processingAfterDownload
         case downloadFailed
+        case downloadPause
         
         case processingForUpload
         case uploading
         case waitingForServerProcess
         case uploadFailed
+        case uploadPause
         
         case ready
     }
@@ -54,8 +56,6 @@ class IGFile: Object {
         case video
         case audio
         case voice
-//        case pdf
-//        case document
         case file
     }
     
@@ -72,6 +72,7 @@ class IGFile: Object {
     @objc dynamic var primaryKeyId:       String?   //if incomming { primaryKeyId = cacheId } else { primaryKeyId = rand}
     @objc dynamic var cacheID:            String?   //set by server
     @objc dynamic var token:              String?
+    @objc dynamic var publicUrl:          String?
     @objc dynamic var fileNameOnDisk:     String?
     @objc dynamic var name:               String?
     @objc dynamic var smallThumbnail:     IGFile?
@@ -171,6 +172,7 @@ class IGFile: Object {
     convenience init(igpFile : IGPFile, type: IGFile.FileType) {
         self.init()
         self.token = igpFile.igpToken
+        self.publicUrl = igpFile.igpPublicURL
         self.name = igpFile.igpName
         self.size = Int(igpFile.igpSize)
         self.cacheID = igpFile.igpCacheID
@@ -215,16 +217,29 @@ class IGFile: Object {
         switch messageType {
         case .audio, .audioAndText:
             fileType = .audio
+            break
+            
         case .image, .imageAndText:
             fileType = .image
+            break
+            
         case .video, .videoAndText:
             fileType = .video
+            break
+            
         case .voice:
             fileType = .voice
-        case .gif,.gifAndText:
+            break
+            
+        case .gif, .gifAndText:
             fileType = .gif
-        default:
+            break
+            
+        case .file, .fileAndText:
             fileType = .file
+            break
+            
+        default:
             break
         }
         
@@ -264,6 +279,23 @@ class IGFile: Object {
         return detachedFile
     }
     
+    internal static func convertFileTypeToString(fileType: IGFile.FileType) -> String{
+        if fileType == .image {
+            return "image"
+        } else if fileType == .video {
+            return "video"
+        } else if fileType == .gif {
+            return "gif"
+        } else if fileType == .audio {
+            return "audio"
+        } else if fileType == .file {
+            return "file"
+        } else if fileType == .voice {
+            return "voice"
+        }
+        return ""
+    }
+    
     
     //other fuctions
     public func loadData() {
@@ -291,32 +323,19 @@ class IGFile: Object {
         }
         return Data(bytes: hash)
     }
-    
+
     public func sizeToString() -> String {
-        let sizeInByte = self.size
-        if sizeInByte == 0 {
-            return ""
-        } else if sizeInByte < 1024 {
-            return "\(sizeInByte) B"
-        } else if sizeInByte < 1048576 {
-            let size: Double = Double(sizeInByte) / 1024.0
-            return String(format: "%.2f KB", size)
-        } else if sizeInByte < 1073741824 {
-            let size: Double = Double(sizeInByte) / 1048576.0
-            return String(format: "%.2f MB", size)
-        } else {
-            let size: Double = Double(sizeInByte) / 1073741824.0
-            return String(format: "%.2f GB", size)
-        }
+        return IGAttachmentManager.sharedManager.convertFileSize(sizeInByte: self.size)
     }
     
-    public func path() -> URL? {
+    public func path(fileType: FileType? = nil) -> URL? {
         let documents = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
         if let fileNameOnDisk = self.fileNameOnDisk {
             return NSURL(fileURLWithPath: documents).appendingPathComponent(fileNameOnDisk)
         } else if let cacheId = self.cacheID, let name = self.name {
             var path = NSURL(fileURLWithPath: documents).appendingPathComponent(cacheId + name)
-            if name.getExtension() == "mp3" || name.getExtension() == "ogg" {
+            
+            if (fileType != nil && fileType == .voice) && (name.getExtension() == "mp3" || name.getExtension() == "ogg") {
                 path = path?.deletingPathExtension().appendingPathExtension("m4a")
             }
             return path

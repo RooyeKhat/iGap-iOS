@@ -159,7 +159,7 @@ class IGClientSearchRoomHistoryRequest : IGRequest {
             let totalCount = responseProtoMessage.igpTotalCount
             let notDeletedCount = responseProtoMessage.igpNotDeletedCount
             let igpMessages = responseProtoMessage.igpResult
-            IGFactory.shared.saveIgpMessagesToDatabase(igpMessages, for: roomId, updateLastMessage: false, isFromSharedMedia: true)
+            //IGFactory.shared.saveIgpMessagesToDatabase(igpMessages, for: roomId, updateLastMessage: false, isFromSharedMedia: true)
             return (totlaCount: totalCount , NotDeletedCount: notDeletedCount , messages: igpMessages)
             
         }
@@ -395,6 +395,24 @@ class IGClientRoomReportRequest: IGRequest {
                 clientRoomReportResponse.igpDescription = description
             }
             return IGRequestWrapper(message: clientRoomReportResponse, actionID: 616)
+        }
+    }
+    class Handler: IGRequest.Handler {
+        class func interpret( response responseProtoMessage : IGPClientRoomReportResponse) {
+        }
+        
+        override class func handlePush(responseProtoMessage: Message) {
+        }
+    }
+}
+
+class IGClientRegisterDeviceRequest: IGRequest {
+    class Generator: IGRequest.Generator {
+        class func generate(token: String) -> IGRequestWrapper {
+            var clientRegisterDevice = IGPClientRegisterDevice()
+            clientRegisterDevice.igpToken = token
+            clientRegisterDevice.igpType = IGPClientRegisterDevice.IGPType.ios
+            return IGRequestWrapper(message: clientRegisterDevice, actionID: 617)
         }
     }
     class Handler: IGRequest.Handler {

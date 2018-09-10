@@ -22,13 +22,13 @@ class IGRecentsTableViewController: UITableViewController, MessageReceiveObserve
     
     static var messageReceiveDelegat: MessageReceiveObserver!
     static var visibleChat: [Int64 : Bool] = [:]
-    var alreadySavedContacts: Bool = false
     var selectedRoomForSegue : IGRoom?
     var cellIdentifer = IGChatRoomListTableViewCell.cellReuseIdentifier()
     var rooms: Results<IGRoom>? = nil
     var notificationToken: NotificationToken?
     var hud = MBProgressHUD()
     var connectionStatus: IGAppManager.ConnectionStatus?
+    static var connectionStatusStatic: IGAppManager.ConnectionStatus?
     var isLoadingMoreRooms: Bool = false
     var numberOfRoomFetchedInLastRequest: Int = -1
     static var needGetInfo: Bool = true
@@ -42,13 +42,16 @@ class IGRecentsTableViewController: UITableViewController, MessageReceiveObserve
             case .waitingForNetwork:
                 navigationItem.setNavigationItemForWaitingForNetwork()
                 connectionStatus = .waitingForNetwork
+                IGAppManager.connectionStatusStatic = .waitingForNetwork
                 break
             case .connecting:
                 navigationItem.setNavigationItemForConnecting()
                 connectionStatus = .connecting
+                IGAppManager.connectionStatusStatic = .connecting
                 break
             case .connected:
                 connectionStatus = .connected
+                IGAppManager.connectionStatusStatic = .connected
                 self.setDefaultNavigationItem()
                 break
             }
@@ -173,8 +176,10 @@ class IGRecentsTableViewController: UITableViewController, MessageReceiveObserve
             self.present(alertController, animated: true, completion: nil)
             
         }
-        navigationItem.leftViewContainer?.addAction {
-            self.performSegue(withIdentifier: "showSettings", sender: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            navigationItem.leftViewContainer?.addAction {
+                self.performSegue(withIdentifier: "showSettings", sender: self)
+            }
         }
     }
     
@@ -229,6 +234,12 @@ class IGRecentsTableViewController: UITableViewController, MessageReceiveObserve
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        DispatchQueue.main.async {
+            if let navigationItem = self.tabBarController?.navigationItem as? IGNavigationItem {
+                IGTabBarController.currentTabStatic = .Recent
+                navigationItem.addiGapLogo()
+            }
+        }
         self.tableView.isUserInteractionEnabled = true
         //self.addRoomChangeNotificationBlock()
     }
@@ -313,11 +324,8 @@ class IGRecentsTableViewController: UITableViewController, MessageReceiveObserve
     }
     
     @objc private func saveAndSendContacts() {
-        if !alreadySavedContacts {
-            let contactManager = IGContactManager.sharedManager
-            contactManager.savePhoneContactsToDatabase()
-            contactManager.sendContactsToServer()
-            alreadySavedContacts = true
+        if !IGContactManager.importedContact {
+            IGContactManager.sharedManager.manageContact()
         }
     }
     @objc private func requestToGetUserPrivacy() {
@@ -689,9 +697,9 @@ class IGRecentsTableViewController: UITableViewController, MessageReceiveObserve
         
         unreadCount = rooms!.sum(ofProperty: "unreadCount")
         if unreadCount == 0 {
-            self.tabBarController?.tabBar.items?[0].badgeValue = nil
+            self.tabBarController?.tabBar.items?[2].badgeValue = nil
         } else {
-            self.tabBarController?.tabBar.items?[0].badgeValue = "\(unreadCount)"
+            self.tabBarController?.tabBar.items?[2].badgeValue = "\(unreadCount)"
         }
     }
     

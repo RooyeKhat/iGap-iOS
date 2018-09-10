@@ -10,6 +10,7 @@
 
 import UIKit
 import SwiftProtobuf
+import MBProgressHUD
 
 let kIGUserLoggedInNotificationName = "im.igap.ios.user.logged.in"
 let kIGNotificationNameDidCreateARoom = "im.igap.ios.room.created"
@@ -21,6 +22,83 @@ let IGNotificationPushTwoStepVerification = Notification(name: Notification.Name
 
 
 class IGGlobal {
+    
+    /**********************************************/
+    /****************** Progress ******************/
+    private static var progressHUD = MBProgressHUD()
+    
+    internal static func prgShow(_ view: UIView){
+        DispatchQueue.main.async {
+            IGGlobal.progressHUD = MBProgressHUD.showAdded(to: view.superview!, animated: true)
+            IGGlobal.progressHUD.mode = .indeterminate
+        }
+    }
+    
+    internal static func prgHide(){
+        DispatchQueue.main.async {
+            IGGlobal.progressHUD.hide(animated: true)
+        }
+    }
+    /****************** Progress ******************/
+    /**********************************************/
+    
+    
+    /**********************************************/
+    /******************** File ********************/
+
+    /*
+     * check file exist in path or no. also if 'fileSize' is set to the input of the method,
+     * size of file that exist in path and 'fileSize' which is set, will be compared.
+     * finally if there are two equal values,the output is true otherwise the output will be false.
+     */
+    
+    internal static func isFileExist(path: String?, fileSize: Int = -1) -> Bool {
+        if path != nil && FileManager.default.fileExists(atPath: path!) {
+            if fileSize == -1 || fileSize == FileManager.default.contents(atPath: path!)?.count {
+                return true
+            }
+        }
+        return false
+    }
+    
+    internal static func isFileExist(path: URL?, fileSize: Int = -1) -> Bool {
+        if path != nil {
+            return isFileExist(path: path?.path, fileSize: fileSize)
+        }
+        return false
+    }
+    
+    internal static func removeFile(path: String?) {
+        do {
+            if path != nil {
+                try FileManager.default.removeItem(atPath: path!)
+            }
+        } catch {
+            print("file not removed")
+        }
+    }
+    
+    internal static func removeFile(path: URL?) {
+        do {
+            if path != nil {
+                try FileManager.default.removeItem(at: path!)
+            }
+        } catch {
+            print("file not removed")
+        }
+    }
+    
+    internal static func getFileSize(path: URL?) -> Int64{
+        if path == nil || path?.path == nil || !isFileExist(path: path) {
+            return 0
+        }
+        
+        return Int64(FileManager.default.contents(atPath: (path?.path)!)!.count)
+    }
+    /******************** File ********************/
+    /**********************************************/
+    
+    
     //MARK: RegEx
     public class func matches(for regex: String, in text: String) -> Bool {
         do {
@@ -133,7 +211,7 @@ extension UIColor {
     
     //MARK: MessageCVCell Bubble
     class func outgoingChatBuubleBackgroundColor() -> UIColor {
-        return UIColor(red: 247.0/255.0, green: 247.0/255.0, blue: 247.0/255.0, alpha: 1.0)
+        return UIColor(red: 121.0/255.0, green: 221.0/255.0, blue: 230.0/255.0, alpha: 1.0)
     }
 
     class func incommingChatBuubleBackgroundColor() -> UIColor {
@@ -154,6 +232,10 @@ extension UIColor {
         } else {
             return UIColor.outgoingChatBuubleBackgroundColor()
         }
+    }
+    
+    class func chatBubbleBorderColor() -> UIColor {
+        return UIColor(red: 179.0/255.0, green: 179.0/255.0, blue: 179.0/255.0, alpha: 1.0)
     }
     
     class func chatBubbleTextColor(isIncommingMessage: Bool) -> UIColor {
@@ -422,10 +504,10 @@ extension UIImageView {
                         }
                     }
                 } catch {
-                    imagesMap[attachment.cacheID!] = self
+                    imagesMap[attachment.token!] = self
                     IGDownloadManager.sharedManager.download(file: thumbnail, previewType:.smallThumbnail, completion: { (attachment) -> Void in
                         DispatchQueue.main.async {
-                            if let image = imagesMap[attachment.cacheID!]{
+                            if let image = imagesMap[attachment.token!] {
                                 image.setThumbnail(for: attachment)
                             }
                         }
@@ -608,6 +690,33 @@ extension String {
             return nil
         }
         return ext
+    }
+    
+    var localized: String {
+        return NSLocalizedString(self, tableName: nil, bundle: Bundle.main, value: "", comment: "")
+    }
+    
+    func substring(offset: Int) -> String{
+        let index = self.index(self.startIndex, offsetBy: offset)
+        return String(self.prefix(upTo: index))
+    }
+    
+    
+    subscript(_ range: CountableRange<Int>) -> String {
+        let idx1 = index(startIndex, offsetBy: max(0, range.lowerBound))
+        let idx2 = index(startIndex, offsetBy: min(self.count, range.upperBound))
+        return String(self[idx1..<idx2])
+    }
+    
+    
+    var isNumber: Bool {
+        return !isEmpty && rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) == nil
+    }
+}
+
+extension Float {
+    var cleanDecimal: String {
+        return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
     }
 }
 
