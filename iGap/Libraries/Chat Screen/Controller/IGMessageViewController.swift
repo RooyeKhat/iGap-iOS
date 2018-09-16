@@ -56,7 +56,6 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate, UIGe
     @IBOutlet weak var txtPinnedMessage: UILabel!
     @IBOutlet weak var collectionView: IGMessageCollectionView!
     @IBOutlet weak var inputBarContainerView: UIView!
-    @IBOutlet weak var joinButton: UIButton!
     @IBOutlet weak var inputTextView: GrowingTextView!
     @IBOutlet weak var inputTextViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var inputBarHeightContainerConstraint: NSLayoutConstraint!
@@ -66,8 +65,14 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate, UIGe
     @IBOutlet weak var inputBarLeftView: UIView!
     @IBOutlet weak var inputBarRightiew: UIView!
     @IBOutlet weak var inputBarViewBottomConstraint: NSLayoutConstraint!
+    @IBOutlet weak var joinButton: UIButton!
     @IBOutlet weak var inputBarRecordButton: UIButton!
+    @IBOutlet weak var btnScrollToBottom: UIButton!
     @IBOutlet weak var inputBarSendButton: UIButton!
+    @IBOutlet weak var btnCancelReplyOrForward: UIButton!
+    @IBOutlet weak var btnDeleteSelectedAttachment: UIButton!
+    @IBOutlet weak var btnClosePin: UIButton!
+    @IBOutlet weak var btnAttachment: UIButton!
     @IBOutlet weak var inputBarRecordTimeLabel: UILabel!
     @IBOutlet weak var inputBarRecordView: UIView!
     @IBOutlet weak var inputBarRecodingBlinkingView: UIView!
@@ -151,6 +156,10 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate, UIGe
     //MARK: - Initilizers
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        removeButtonsUnderline(buttons: [joinButton, inputBarRecordButton, btnScrollToBottom,
+                                         inputBarSendButton, btnCancelReplyOrForward,
+                                         btnDeleteSelectedAttachment, btnClosePin, btnAttachment])
         
         IGAppManager.sharedManager.connectionStatus.asObservable().subscribe(onNext: { (connectionStatus) in
             DispatchQueue.main.async {
@@ -236,7 +245,7 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate, UIGe
 //        messages = try! Realm().objects(IGRoomMessage.self).filter(predicate).sorted(byProperty: "creationTime")
 //        messages = try! IGFactory.shared.realm.objects(IGRoomMessage.self).filter(predicate).sorted(byProperty: "creationTime")
         
-        let messagesWithMediaPredicate = NSPredicate(format: "roomId = %lld AND isDeleted == false AND (typeRaw = %d OR typeRaw = %d)", self.room!.id, IGRoomMessageType.image.rawValue, IGRoomMessageType.imageAndText.rawValue)
+        let messagesWithMediaPredicate = NSPredicate(format: "roomId = %lld AND isDeleted == false AND (typeRaw = %d OR typeRaw = %d OR forwardedFrom.typeRaw = %d OR forwardedFrom.typeRaw = %d)", self.room!.id, IGRoomMessageType.image.rawValue, IGRoomMessageType.imageAndText.rawValue, IGRoomMessageType.image.rawValue, IGRoomMessageType.imageAndText.rawValue)
         messagesWithMedia = try! Realm().objects(IGRoomMessage.self).filter(messagesWithMediaPredicate).sorted(by: sortPropertiesForMedia)
         
         let messagesWithForwardedMediaPredicate = NSPredicate(format: "roomId = %lld AND isDeleted == false AND (forwardedFrom.typeRaw == 1 OR forwardedFrom.typeRaw == 2 OR forwardedFrom.typeRaw == 3 OR forwardedFrom.typeRaw == 4)", self.room!.id)
@@ -328,6 +337,12 @@ class IGMessageViewController: UIViewController, DidSelectLocationDelegate, UIGe
         
         if messages.count == 0 {
             fetchRoomHistoryWhenDbIsClear()
+        }
+    }
+    
+    private func removeButtonsUnderline(buttons: [UIButton]){
+        for btn in buttons {
+            btn.removeUnderline()
         }
     }
     
@@ -1877,6 +1892,7 @@ extension IGMessageViewController: IGMessageCollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        self.collectionView = collectionView as! IGMessageCollectionView
         let message = messages![indexPath.section]
         var isIncommingMessage = true
         var shouldShowAvatar = false
@@ -2506,12 +2522,13 @@ extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
         return self
     }
     
-    func didTapOnAttachment(cellMessage: IGRoomMessage, cell: IGMessageGeneralCollectionViewCell) {
+    func didTapOnAttachment(cellMessage: IGRoomMessage, cell: IGMessageGeneralCollectionViewCell, imageView: IGImageView?) {
         
         var finalMessage = cellMessage
         var roomMessageLists = self.messagesWithMedia
         if cellMessage.forwardedFrom != nil {
-            roomMessageLists = self.messagesWithForwardedMedia
+            //roomMessageLists = self.messagesWithForwardedMedia
+            roomMessageLists = self.messagesWithMedia
             finalMessage = cellMessage.forwardedFrom!
         }
         
@@ -2564,7 +2581,7 @@ extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
             return
         }
         
-        let thisMessageInSharedMediaResult = roomMessageLists.filter("id == \(finalMessage.id)")
+        let thisMessageInSharedMediaResult = roomMessageLists.filter("id == \(cellMessage.id)")
         var indexOfThis = 0
         if let this = thisMessageInSharedMediaResult.first {
             indexOfThis = roomMessageLists.index(of: this)!
@@ -2575,7 +2592,10 @@ extension IGMessageViewController: IGMessageGeneralCollectionViewCellDelegate {
         })
         
         let currentPhoto = photos[indexOfThis]
-        let galleryPreview = INSPhotosViewController(photos: photos, initialPhoto: currentPhoto, referenceView: nil)
+        let galleryPreview = INSPhotosViewController(photos: photos, initialPhoto: currentPhoto, referenceView: imageView)
+        galleryPreview.referenceViewForPhotoWhenDismissingHandler = { photo in
+            return imageView
+        }
         present(galleryPreview, animated: true, completion: nil)
     }
     

@@ -34,6 +34,17 @@ class IGMessageAttachmentCurrentLocationViewController: UIViewController , UIGes
     var showedCurrentLocation = false
     var room : IGRoom!
     
+    @IBAction func segmentChanger(_ sender: UISegmentedControl) {
+        switch (sender.selectedSegmentIndex) {
+        case 0:
+            mapView.mapType = .standard
+        case 1:
+            mapView.mapType = .satellite
+        default:
+            mapView.mapType = .standard
+        }
+    }
+    
     @IBAction func btnCurrentLocation(_ sender: UIButton) {
         setCurrentLocation()
     }
@@ -75,6 +86,8 @@ class IGMessageAttachmentCurrentLocationViewController: UIViewController , UIGes
     }
     
     func buttonViewCustomize(){
+        btnCurrentLocation.removeUnderline()
+        
         btnCurrentLocation.layer.shadowColor = UIColor.darkGray.cgColor
         btnCurrentLocation.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
         btnCurrentLocation.layer.shadowRadius = 0.1
